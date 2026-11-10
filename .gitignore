@@ -1,0 +1,15 @@
+.venv/
+.venv310/
+venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.vscode/
+.ipynb_checkpoints/
+creditcard.csv

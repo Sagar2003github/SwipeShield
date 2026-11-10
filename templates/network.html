@@ -1,0 +1,775 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050a12">
+<title>Fraud Network | SwipeShield SOC</title>
+<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+
+<style>
+:root {
+    --bg:#050a12;
+    --sidebar:#070e18;
+    --panel:#0b1422;
+    --border:rgba(54,217,255,.17);
+    --cyan:#22d3ee;
+    --cyan-soft:rgba(34,211,238,.09);
+    --text:#e7f0fa;
+    --muted:#8799b0;
+    --green:#48d6a0;
+    --red:#ff3b81;
+    --amber:#fbbf24;
+    --purple:#a855f7;
+    --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;overflow-x:hidden}
+button,input,select{font:inherit}
+button,a,input,select{-webkit-tap-highlight-color:transparent}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer}
+.app-shell{display:flex;min-height:100vh}
+.sidebar{width:250px;flex:0 0 250px;display:flex;flex-direction:column;padding:26px 17px 18px;background:var(--sidebar);border-right:1px solid var(--border);min-height:100vh;position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;padding:0 5px;margin-bottom:34px;color:var(--cyan);font-size:23px;font-weight:850;letter-spacing:-.8px}
+.brand-mark{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(34,211,238,.4);border-radius:10px;background:var(--cyan-soft);font-size:20px}
+.nav-label{margin:14px 9px 9px;color:#71859e;font-size:10px;font-weight:800;letter-spacing:1.5px}
+.nav-link{display:flex;align-items:center;gap:12px;min-height:44px;padding:11px 12px;margin-bottom:5px;border:1px solid transparent;border-radius:9px;color:#9aacc2;font-size:13px;font-weight:600;transition:.2s}
+.nav-link:hover{color:var(--cyan);background:rgba(34,211,238,.045)}
+.nav-link.active{color:var(--cyan);background:rgba(34,211,238,.075);border-color:var(--border);box-shadow:inset 3px 0 0 var(--cyan)}
+.nav-icon{width:20px;text-align:center;font-size:16px}
+.nav-link.logout{margin-top:auto;color:var(--red)}
+.sidebar-bottom{margin-top:28px;padding:13px 11px;border:1px solid var(--border);background:rgba(34,211,238,.035);border-radius:10px}
+.sidebar-bottom strong{display:block;margin-bottom:7px;font-size:11px;letter-spacing:.6px}
+.sidebar-bottom span{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px}
+.status-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(72,214,160,.4)}
+.main-content{min-width:0;flex:1;padding:30px;background-image:linear-gradient(rgba(34,211,238,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.018) 1px,transparent 1px);background-size:38px 38px}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;margin-bottom:28px}
+.eyebrow{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;margin-bottom:9px}
+.page-title{font-size:clamp(23px,2.4vw,31px);font-weight:800;letter-spacing:-.9px}
+.page-subtitle{margin-top:9px;color:var(--muted);font-size:13px;line-height:1.7}
+.topbar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.live-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;color:var(--green);background:rgba(72,214,160,.06);border:1px solid rgba(72,214,160,.2);border-radius:9px;font-size:11px;font-weight:700}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:39px;padding:10px 13px;border-radius:8px;border:1px solid var(--border);color:var(--cyan);background:rgba(34,211,238,.055);font-size:12px;font-weight:700;transition:.2s}
+.btn:hover{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.4)}
+.btn-primary{color:#03111a;background:var(--cyan);border-color:var(--cyan)}
+.btn-primary:hover{color:#03111a;background:#a1efff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:20px}
+.stat-card{position:relative;min-width:0;overflow:hidden;padding:19px;border:1px solid var(--border);border-radius:var(--radius);background:linear-gradient(145deg,#0c1727,#09121f)}
+.stat-card:after{content:"";position:absolute;right:-30px;top:-40px;width:100px;height:100px;border-radius:50%;background:rgba(34,211,238,.045);pointer-events:none}
+.stat-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.stat-label{color:var(--muted);font-size:11px;font-weight:700}
+.stat-icon{display:grid;place-items:center;width:33px;height:33px;border-radius:9px;color:var(--cyan);background:var(--cyan-soft);font-size:16px}
+.stat-value{margin-top:15px;font-size:29px;line-height:1;font-weight:800;letter-spacing:-.7px;overflow-wrap:anywhere}
+.stat-caption{margin-top:9px;color:#71849c;font-size:10px;line-height:1.5}
+.text-red{color:var(--red)}.text-green{color:var(--green)}.text-cyan{color:var(--cyan)}.text-amber{color:var(--amber)}
+.panel{min-width:0;border:1px solid var(--border);border-radius:var(--radius);background:rgba(10,19,32,.97);box-shadow:0 14px 35px rgba(0,0,0,.12)}
+.panel-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;padding:19px 20px;border-bottom:1px solid rgba(255,255,255,.055)}
+.panel-title{font-size:14px;font-weight:750}
+.panel-description{margin-top:6px;color:var(--muted);font-size:11px;line-height:1.6}
+.panel-body{padding:18px 20px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:18px;align-items:stretch}
+.graph-panel{overflow:hidden}
+.graph-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.search-input,.filter-select{min-width:0;height:38px;padding:0 11px;color:var(--text);background:#08111d;border:1px solid #26394e;border-radius:8px;outline:none;font-size:11px}
+.search-input{width:145px}
+.search-input:focus,.filter-select:focus{border-color:var(--cyan)}
+.filter-select option{background:#0b1422}
+.graph-legend{display:flex;flex-wrap:wrap;gap:15px;padding:14px 20px 0;color:#a4b4c8;font-size:10px}
+.legend-item{display:inline-flex;align-items:center;gap:7px}
+.legend-dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 9px currentColor}
+.legend-line{width:18px;height:3px;border-radius:2px}
+#networkGraph{width:calc(100% - 28px);height:530px;margin:14px;border:1px solid rgba(34,211,238,.13);border-radius:10px;background:radial-gradient(ellipse at center,rgba(21,48,72,.28),transparent 68%),#070e19;box-shadow:inset 0 0 35px rgba(34,211,238,.025)}
+.graph-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:0 20px 18px;color:#72849b;font-size:10px}
+.graph-footer strong{color:#b9c8d9;font-weight:600}
+.selected-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;color:var(--cyan);background:var(--cyan-soft);border:1px solid var(--border);border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.6px}
+.empty-state{padding:23px 4px;text-align:center}
+.empty-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 16px;color:var(--cyan);background:var(--cyan-soft);border:1px solid var(--border);border-radius:17px;font-size:25px}
+.empty-state h3{margin-bottom:9px;font-size:13px}
+.empty-state p{color:var(--muted);font-size:11px;line-height:1.7}
+.detail-content[hidden],.empty-state[hidden]{display:none!important}
+.risk-banner{padding:13px;margin-bottom:18px;border:1px solid rgba(255,59,129,.22);border-radius:10px;background:rgba(255,59,129,.055)}
+.risk-banner.safe{border-color:rgba(72,214,160,.22);background:rgba(72,214,160,.045)}
+.risk-banner.medium{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.055)}
+.risk-banner-label{color:var(--muted);font-size:10px}
+.risk-banner-value{margin-top:6px;font-size:20px;font-weight:800}
+.risk-meter{height:5px;margin-top:11px;overflow:hidden;border-radius:8px;background:#263548}
+.risk-meter-fill{height:100%;width:0;border-radius:inherit;background:var(--red);transition:width .25s}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.detail-row:last-child{border-bottom:0}
+.detail-label{color:var(--muted);font-size:10px;line-height:1.6}
+.detail-value{max-width:60%;text-align:right;overflow-wrap:anywhere;color:var(--text);font-size:11px;font-weight:650}
+.prediction-chip{display:inline-block;padding:5px 7px;border-radius:5px;font-size:9px;font-weight:800}
+.prediction-chip.fraud{color:#ff8394;background:rgba(255,59,129,.1);border:1px solid rgba(255,59,129,.18)}
+.prediction-chip.safe{color:var(--green);background:rgba(72,214,160,.08);border:1px solid rgba(72,214,160,.16)}
+.prediction-chip.medium{color:var(--amber);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)}
+.investigation-note{margin-top:16px;padding:11px;color:#91a6bd;background:rgba(34,211,238,.035);border:1px solid rgba(34,211,238,.1);border-radius:8px;font-size:10px;line-height:1.65}
+.status-bar{display:flex;align-items:center;gap:9px;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border);border-radius:9px;background:rgba(34,211,238,.035);color:#a7b9cc;font-size:11px}
+.status-bar.error{color:#ff9aa8;border-color:rgba(255,59,129,.25);background:rgba(255,59,129,.045)}
+.spinner{width:12px;height:12px;flex:0 0 12px;border:2px solid rgba(34,211,238,.25);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:22px;color:#657991;font-size:10px}
+@media(max-width:1250px){.sidebar{width:220px;flex-basis:220px}.main-content{padding:22px}.workspace{grid-template-columns:minmax(0,1fr) 260px}.stats-grid{gap:11px}.stat-card{padding:15px}}
+@media(max-width:1000px){.workspace{grid-template-columns:minmax(0,1fr)}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#networkGraph{height:470px}}
+@media(max-width:680px){.app-shell{display:block}.sidebar{width:100%;min-height:auto;padding:15px;border-right:0;border-bottom:1px solid var(--border)}.brand{margin-bottom:14px}.nav-label{margin-top:8px}.nav-link{min-height:38px;padding:9px 11px}.sidebar-bottom{margin-top:10px}.nav-link.logout{margin-top:0}.main-content{padding:18px 13px}.topbar{align-items:flex-start;margin-bottom:20px}.topbar-actions{width:100%}.stats-grid{gap:10px}.stat-card{padding:13px}.stat-value{font-size:24px}.panel-header,.panel-body{padding:15px}.graph-toolbar{width:100%}.search-input{flex:1;width:100%}.filter-select{flex:1}#networkGraph{width:calc(100% - 20px);height:390px;margin:10px}.graph-legend{padding:13px 15px 0;gap:10px}.graph-footer{padding:0 15px 15px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+    <a href="/dashboard" class="brand"><span class="brand-mark">⬡</span><span>SwipeShield</span></a>
+    <div class="nav-label">CORE PLATFORM</div>
+    <a href="/dashboard" class="nav-link"><span class="nav-icon">▦</span> Dashboard</a>
+    <a href="/predict_page" class="nav-link"><span class="nav-icon">⌕</span> Analyze Fraud</a>
+    <a href="/network_page" class="nav-link active" aria-current="page"><span class="nav-icon">⌘</span> Fraud Network</a>
+    <a href="/logs_page" class="nav-link"><span class="nav-icon">▤</span> Audit Logs</a>
+    <div class="nav-label">AI METRICS &amp; SECURITY</div>
+    <a href="/alerts_page" class="nav-link"><span class="nav-icon">⚠</span> Threat Alerts</a>
+    <a href="/model_health" class="nav-link"><span class="nav-icon">◈</span> Model Health</a>
+    <a href="/map_page" class="nav-link"><span class="nav-icon">◎</span> Global Threat Map</a>
+    <div class="nav-label">SYSTEM &amp; ADMIN</div>
+    <a href="/profile" class="nav-link"><span class="nav-icon">◉</span> Security Profile</a>
+    <a href="/logout" class="nav-link logout"><span class="nav-icon">↪</span> Logout</a>
+    <div class="sidebar-bottom">
+        <strong>SECURITY OPERATIONS</strong>
+        <span><i class="status-dot"></i> Local analysis enabled</span>
+    </div>
+</aside>
+
+<main class="main-content">
+<header class="topbar">
+    <div>
+        <div class="eyebrow">Security Operations Center / Network Intelligence</div>
+        <h1 class="page-title">Fraud Network Analysis</h1>
+        <p class="page-subtitle">Investigate transaction relationships, connected groups and potential risk indicators.</p>
+    </div>
+    <div class="topbar-actions">
+        <div class="live-pill"><span class="status-dot"></span> LOCAL ENGINE</div>
+        <button class="btn btn-primary" id="refreshButton" type="button">↻ Refresh Network</button>
+        <a href="/dashboard" class="btn">← Dashboard</a>
+    </div>
+</header>
+
+<div id="status" class="status-bar" role="status" aria-live="polite">
+    <span class="spinner"></span> Loading transaction network...
+</div>
+
+<section class="stats-grid" aria-label="Fraud network metrics">
+    <article class="stat-card"><div class="stat-top"><div class="stat-label">TRANSACTIONS ANALYSED</div><div class="stat-icon">▤</div></div><div class="stat-value text-cyan" id="totalTransactions">—</div><div class="stat-caption">Transactions in the selected network</div></article>
+    <article class="stat-card"><div class="stat-top"><div class="stat-label">NETWORK CONNECTIONS</div><div class="stat-icon">⌘</div></div><div class="stat-value text-amber" id="totalConnections">—</div><div class="stat-caption">Detected links between transactions</div></article>
+    <article class="stat-card"><div class="stat-top"><div class="stat-label">CONNECTED GROUPS</div><div class="stat-icon">◎</div></div><div class="stat-value text-cyan" id="totalClusters">—</div><div class="stat-caption">Connected components in the graph</div></article>
+    <article class="stat-card"><div class="stat-top"><div class="stat-label">HIGH-RISK TRANSACTIONS</div><div class="stat-icon">⚠</div></div><div class="stat-value text-red" id="totalSuspicious">—</div><div class="stat-caption">Transactions flagged by the current threshold</div></article>
+</section>
+
+<section class="workspace">
+<article class="panel graph-panel">
+    <div class="panel-header">
+        <div><h2 class="panel-title">Transaction Relationship Graph</h2><p class="panel-description">Select a node to inspect a transaction and its immediate connections.</p></div>
+        <div class="graph-toolbar">
+            <input class="search-input" type="search" id="transactionSearch" placeholder="Search TX ID..." aria-label="Search transaction ID">
+            <select class="filter-select" id="riskFilter" aria-label="Filter transactions">
+                <option value="all">All transactions</option>
+                <option value="high">High risk only</option>
+                <option value="medium">Medium risk only</option>
+                <option value="lower">Low risk only</option>
+            </select>
+            <button class="btn" id="fitButton" type="button">Fit graph</button>
+        </div>
+    </div>
+
+    <div class="graph-legend">
+        <span class="legend-item"><i class="legend-dot" style="background:#22d3ee;color:#22d3ee"></i> Low risk</span>
+        <span class="legend-item"><i class="legend-dot" style="background:#fbbf24;color:#fbbf24"></i> Medium risk</span>
+        <span class="legend-item"><i class="legend-dot" style="background:#ff3b81;color:#ff3b81"></i> High risk</span>
+        <span class="legend-item"><i class="legend-line" style="background:#fbbf24"></i> Same card</span>
+        <span class="legend-item"><i class="legend-line" style="background:#22d3ee"></i> Similar features</span>
+    </div>
+
+    <div id="networkGraph" aria-label="Interactive transaction network graph"></div>
+    <div class="graph-footer">
+        <span><strong id="visibleNodeCount">0</strong> visible nodes</span>
+        <span>Scroll to zoom · Drag to reposition · Click a node to investigate</span>
+    </div>
+</article>
+
+<aside class="panel investigation-panel">
+    <div class="panel-header">
+        <div><h2 class="panel-title">Investigation Panel</h2><p class="panel-description">Selected transaction intelligence</p></div>
+        <span class="selected-badge">TX DETAILS</span>
+    </div>
+    <div class="panel-body">
+        <div class="empty-state" id="emptyMessage">
+            <div class="empty-icon">⌕</div>
+            <h3>No transaction selected</h3>
+            <p>Select a transaction node in the graph to review its risk level, connections and cluster information.</p>
+        </div>
+
+        <div class="detail-content" id="transactionDetails" hidden>
+            <div class="risk-banner" id="riskBanner">
+                <div class="risk-banner-label">TRANSACTION RISK LEVEL</div>
+                <div class="risk-banner-value text-red" id="detailRisk">—</div>
+                <div class="risk-meter"><div class="risk-meter-fill" id="riskMeterFill"></div></div>
+            </div>
+            <div class="detail-row"><span class="detail-label">Transaction ID</span><span class="detail-value" id="detailId">—</span></div>
+            <div class="detail-row"><span class="detail-label">Card Identifier</span><span class="detail-value" id="detailCard">—</span></div>
+            <div class="detail-row"><span class="detail-label">Transaction Amount</span><span class="detail-value" id="detailAmount">—</span></div>
+            <div class="detail-row"><span class="detail-label">Model Prediction</span><span class="detail-value" id="detailPrediction">—</span></div>
+            <div class="detail-row"><span class="detail-label">Direct Connections</span><span class="detail-value" id="detailConnections">—</span></div>
+            <div class="detail-row"><span class="detail-label">Connected Group</span><span class="detail-value" id="detailCluster">—</span></div>
+            <div class="detail-row"><span class="detail-label">Degree Centrality</span><span class="detail-value" id="detailCentrality">—</span></div>
+            <div class="detail-row"><span class="detail-label">Timestamp</span><span class="detail-value" id="detailTimestamp">—</span></div>
+            <div class="investigation-note" id="investigationNote">Network relationships are investigative signals, not proof of fraud.</div>
+            <button class="btn" id="showConnectionsButton" type="button" style="width:100%;margin-top:14px">Highlight direct connections</button>
+        </div>
+    </div>
+</aside>
+</section>
+
+<footer class="footer">
+    <span>SwipeShield · Fraud Detection &amp; Risk Intelligence</span>
+    <span>Network analysis · NetworkX + Cytoscape.js</span>
+</footer>
+</main>
+</div>
+
+<script>
+"use strict";
+
+let cy = null;
+let allNodeData = [];
+let allEdgeData = [];
+let selectedNodeId = null;
+
+const $ = id => document.getElementById(id);
+
+function setStatus(message, isError = false, loading = false) {
+    const status = $("status");
+    status.classList.toggle("error", isError);
+    status.replaceChildren();
+
+    if (loading) {
+        const spinner = document.createElement("span");
+        spinner.className = "spinner";
+        status.appendChild(spinner);
+    } else {
+        const dot = document.createElement("span");
+        dot.className = "status-dot";
+        dot.style.background = isError ? "var(--red)" : "var(--green)";
+        status.appendChild(dot);
+    }
+
+    const text = document.createElement("span");
+    text.textContent = message;
+    status.appendChild(text);
+}
+
+function numberValue(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
+function updateSummary(summary) {
+    $("totalTransactions").textContent =
+        numberValue(summary.transactions).toLocaleString();
+
+    $("totalConnections").textContent =
+        numberValue(summary.connections).toLocaleString();
+
+    $("totalClusters").textContent =
+        numberValue(summary.clusters).toLocaleString();
+
+    $("totalSuspicious").textContent =
+        numberValue(summary.suspicious_transactions).toLocaleString();
+}
+
+/*
+ * Risk mapping:
+ * - suspicious=true or explicit high/fraud label => high risk.
+ * - explicit medium/moderate label => medium risk.
+ * - optional numeric score/probability supports 0..1 or 0..100.
+ * - when no risk data exists, default to low for display only.
+ *
+ * The numeric thresholds are visual defaults, not validated model thresholds.
+ */
+function getRiskLevel(node) {
+    const suspicious = node.suspicious === true ||
+        String(node.suspicious).toLowerCase() === "true" ||
+        String(node.suspicious) === "1";
+
+    const rawLabel = String(
+        node.risk_level ?? node.riskLevel ?? node.risk ?? node.prediction ?? ""
+    ).trim().toLowerCase();
+
+    if (suspicious ||
+        ["high", "high risk", "fraud", "fraudulent", "suspicious"].includes(rawLabel)) {
+        return "high";
+    }
+
+    if (["medium", "moderate", "medium risk"].includes(rawLabel)) {
+        return "medium";
+    }
+
+    if (["low", "low risk", "safe", "legitimate", "normal"].includes(rawLabel)) {
+        return "low";
+    }
+
+    let score = Number(
+        node.risk_score ?? node.probability ?? node.score
+    );
+
+    if (Number.isFinite(score)) {
+        if (score > 1 && score <= 100) score /= 100;
+        if (score >= 0.7) return "high";
+        if (score >= 0.4) return "medium";
+    }
+
+    return "low";
+}
+
+function riskLabel(level) {
+    return level === "high" ? "High Risk" :
+        level === "medium" ? "Medium Risk" : "Low Risk";
+}
+
+function getNodeData(id) {
+    return allNodeData.find(node => String(node.id) === String(id));
+}
+
+function clearSelection() {
+    selectedNodeId = null;
+    $("emptyMessage").hidden = false;
+    $("transactionDetails").hidden = true;
+
+    if (cy) {
+        cy.elements().removeClass("selected-node connected-node dimmed");
+    }
+}
+
+function showTransactionDetails(node) {
+    selectedNodeId = String(node.id);
+
+    $("emptyMessage").hidden = true;
+    $("transactionDetails").hidden = false;
+
+    const level = getRiskLevel(node);
+    const suspicious = level === "high";
+    const scoreRaw = Number(node.risk_score ?? node.probability ?? node.score);
+    const scorePercent = Number.isFinite(scoreRaw)
+        ? Math.max(0, Math.min(100, scoreRaw <= 1 ? scoreRaw * 100 : scoreRaw))
+        : null;
+
+    $("detailId").textContent = node.transaction_id ?? node.id;
+    $("detailCard").textContent = node.card ?? node.card_id ?? node.card_number ?? "Unknown";
+
+    const amount = Number(node.amount ?? node.transaction_amount);
+    $("detailAmount").textContent = Number.isFinite(amount)
+        ? amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+        : "Unavailable";
+
+    $("detailRisk").textContent =
+        scorePercent === null ? riskLabel(level) : `${riskLabel(level)} · ${scorePercent.toFixed(1)}%`;
+
+    $("detailRisk").className = "risk-banner-value " +
+        (level === "high" ? "text-red" : level === "medium" ? "text-amber" : "text-green");
+
+    $("riskBanner").classList.toggle("safe", level === "low");
+    $("riskBanner").classList.toggle("medium", level === "medium");
+    $("riskMeterFill").style.width =
+        (scorePercent === null ? (level === "high" ? 100 : level === "medium" ? 55 : 20) : scorePercent) + "%";
+    $("riskMeterFill").style.background =
+        level === "high" ? "var(--red)" : level === "medium" ? "var(--amber)" : "var(--cyan)";
+
+    const prediction = $("detailPrediction");
+    prediction.replaceChildren();
+
+    const chip = document.createElement("span");
+    chip.className = "prediction-chip " +
+        (level === "high" ? "fraud" : level === "medium" ? "medium" : "safe");
+    chip.textContent = node.prediction ?? node.label_prediction ?? riskLabel(level);
+    prediction.appendChild(chip);
+
+    const directConnections = Number.isFinite(Number(node.connections))
+        ? Number(node.connections)
+        : (cy ? cy.getElementById(String(node.id)).connectedEdges().length : 0);
+
+    $("detailConnections").textContent = directConnections.toLocaleString();
+    $("detailCluster").textContent = node.cluster ?? node.cluster_id ?? "—";
+
+    const centrality = Number(node.centrality ?? node.degree_centrality);
+    $("detailCentrality").textContent = Number.isFinite(centrality)
+        ? (centrality * 100).toFixed(2) + "%"
+        : "Unavailable";
+
+    $("detailTimestamp").textContent =
+        node.timestamp ?? node.time ?? node.datetime ?? "Unavailable";
+
+    $("investigationNote").textContent = level === "high"
+        ? "This transaction is flagged as high risk by the available transaction data. Review its linked transactions before drawing conclusions."
+        : level === "medium"
+        ? "This transaction has medium-risk indicators. Review its attributes and linked transactions; this label is not proof of fraud."
+        : "This transaction is not currently marked high risk by the available data. Connections alone do not imply fraud.";
+
+    if (cy) {
+        cy.elements().removeClass("selected-node connected-node dimmed");
+
+        const selected = cy.getElementById(String(node.id));
+
+        if (selected.length) {
+            cy.elements().addClass("dimmed");
+            selected.removeClass("dimmed").addClass("selected-node");
+            selected.connectedEdges().removeClass("dimmed");
+            selected.neighborhood("node").removeClass("dimmed").addClass("connected-node");
+        }
+    }
+}
+
+function applyFilters() {
+    if (!cy) return;
+
+    const filter = $("riskFilter").value;
+    const search = $("transactionSearch").value.trim().toLowerCase();
+
+    cy.nodes().forEach(node => {
+        const data = node.data();
+        const level = data.riskLevel || getRiskLevel(data);
+        const txId = String(data.transaction_id ?? data.id).toLowerCase();
+        const card = String(data.card ?? data.card_id ?? data.card_number ?? "").toLowerCase();
+
+        const matchesRisk =
+            filter === "all" ||
+            (filter === "high" && level === "high") ||
+            (filter === "medium" && level === "medium") ||
+            (filter === "lower" && level === "low");
+
+        const matchesSearch =
+            !search || txId.includes(search) || card.includes(search);
+
+        node.style("display", matchesRisk && matchesSearch ? "element" : "none");
+    });
+
+    cy.edges().forEach(edge => {
+        const visible =
+            edge.source().style("display") !== "none" &&
+            edge.target().style("display") !== "none";
+        edge.style("display", visible ? "element" : "none");
+    });
+
+    $("visibleNodeCount").textContent =
+        cy.nodes().filter(node => node.style("display") !== "none").length;
+
+    if (selectedNodeId) {
+        const selected = cy.getElementById(selectedNodeId);
+        if (!selected.length || selected.style("display") === "none") {
+            clearSelection();
+        }
+    }
+}
+
+function createGraph(nodes, edges) {
+    if (typeof cytoscape !== "function") {
+        throw new Error("Cytoscape.js could not load. Check your internet connection and refresh.");
+    }
+
+    const elements = [];
+
+    nodes.forEach((node, index) => {
+        const nodeId = node.id ?? node.transaction_id ?? `transaction-${index}`;
+
+        elements.push({
+            data: {
+                ...node,
+                id: String(nodeId),
+                riskLevel: getRiskLevel(node),
+                label: "TX " + String(node.transaction_id ?? nodeId)
+            }
+        });
+    });
+
+    const knownIds = new Set(elements.map(element => element.data.id));
+
+    edges.forEach((edge, index) => {
+        const source = String(edge.source);
+        const target = String(edge.target);
+
+        if (!knownIds.has(source) || !knownIds.has(target)) return;
+
+        elements.push({
+            data: {
+                id: "edge-" + index,
+                source,
+                target,
+                relationship: edge.relationship || "unknown",
+                similarity: numberValue(edge.similarity)
+            }
+        });
+    });
+
+    if (cy) {
+        cy.destroy();
+        cy = null;
+    }
+
+    clearSelection();
+
+    cy = cytoscape({
+        container: $("networkGraph"),
+        elements,
+        minZoom: 0.15,
+        maxZoom: 3,
+        wheelSensitivity: 0.2,
+        selectionType: "single",
+        layout: {
+            name: "cose",
+            animate: true,
+            animationDuration: 450,
+            fit: true,
+            padding: 35,
+            nodeRepulsion: function() { return 6500; },
+            idealEdgeLength: function() { return 90; },
+            edgeElasticity: function() { return 90; },
+            gravity: 0.25,
+            numIter: 600,
+            randomize: true
+        },
+        style: [
+            {
+                selector: "node",
+                style: {
+                    "label": "data(label)",
+                    "width": 27,
+                    "height": 27,
+                    "background-color": "#22D3EE",
+                    "border-width": 2,
+                    "border-color": "#A5F3FC",
+                    "color": "#E6F7FF",
+                    "font-size": 9,
+                    "font-family": "Segoe UI, Arial, sans-serif",
+                    "font-weight": 600,
+                    "text-valign": "bottom",
+                    "text-halign": "center",
+                    "text-margin-y": 7,
+                    "text-outline-width": 2,
+                    "text-outline-color": "#050B16",
+                    "overlay-opacity": 0,
+                    "shadow-blur": 13,
+                    "shadow-color": "#22D3EE",
+                    "shadow-opacity": 0.65,
+                    "shadow-offset-x": 0,
+                    "shadow-offset-y": 0,
+                    "transition-property": "background-color, border-color, width, height, opacity",
+                    "transition-duration": 180
+                }
+            },
+            {
+                selector: 'node[riskLevel = "low"]',
+                style: {
+                    "background-color": "#22D3EE",
+                    "border-color": "#A5F3FC",
+                    "shadow-color": "#22D3EE"
+                }
+            },
+            {
+                selector: 'node[riskLevel = "medium"]',
+                style: {
+                    "background-color": "#FBBF24",
+                    "border-color": "#FDE68A",
+                    "shadow-color": "#F59E0B",
+                    "width": 31,
+                    "height": 31
+                }
+            },
+            {
+                selector: 'node[riskLevel = "high"]',
+                style: {
+                    "background-color": "#FF3B81",
+                    "border-color": "#FDA4AF",
+                    "border-width": 2.5,
+                    "shadow-color": "#FF1744",
+                    "shadow-blur": 20,
+                    "shadow-opacity": 0.95,
+                    "width": 36,
+                    "height": 36
+                }
+            },
+            {
+                selector: "edge",
+                style: {
+                    "width": 1.5,
+                    "line-color": "#155E75",
+                    "opacity": 0.68,
+                    "curve-style": "bezier",
+                    "line-cap": "round",
+                    "target-arrow-shape": "none"
+                }
+            },
+            {
+                selector: 'edge[relationship = "same_card"]',
+                style: {
+                    "line-color": "#FBBF24",
+                    "opacity": 0.88,
+                    "width": 2.2
+                }
+            },
+            {
+                selector: 'edge[relationship = "similar_features"]',
+                style: {
+                    "line-color": "#22D3EE",
+                    "line-style": "dashed",
+                    "opacity": 0.78,
+                    "width": 1.5
+                }
+            },
+            {
+                selector: "node:selected",
+                style: {
+                    "border-color": "#F3E8FF",
+                    "border-width": 4,
+                    "shadow-color": "#A855F7",
+                    "shadow-blur": 24,
+                    "shadow-opacity": 1
+                }
+            },
+            {
+                selector: ".selected-node",
+                style: {
+                    "border-color": "#F3E8FF",
+                    "border-width": 4,
+                    "shadow-color": "#A855F7",
+                    "shadow-blur": 26,
+                    "shadow-opacity": 1,
+                    "width": 43,
+                    "height": 43,
+                    "z-index": 999
+                }
+            },
+            {
+                selector: ".connected-node",
+                style: {
+                    "border-color": "#22D3EE",
+                    "shadow-color": "#22D3EE",
+                    "shadow-blur": 17,
+                    "shadow-opacity": 0.95,
+                    "border-width": 3
+                }
+            },
+            {
+                selector: ".dimmed",
+                style: {
+                    "opacity": 0.12,
+                    "text-opacity": 0.15
+                }
+            },
+            {
+                selector: ":hidden",
+                style: {"display": "none"}
+            }
+        ]
+    });
+
+    cy.on("tap", "node", function(event) {
+        showTransactionDetails(event.target.data());
+    });
+
+    cy.on("tap", function(event) {
+        if (event.target === cy) clearSelection();
+    });
+
+    $("visibleNodeCount").textContent = nodes.length;
+    applyFilters();
+}
+
+async function loadNetwork() {
+    const refreshButton = $("refreshButton");
+
+    refreshButton.disabled = true;
+    refreshButton.textContent = "Loading...";
+    setStatus("Loading transaction graph...", false, true);
+
+    try {
+        const response = await fetch("/api/fraud-network?limit=200", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {"Accept": "application/json"}
+        });
+
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok || data.status !== "success") {
+            throw new Error(data.message || "Could not load the fraud network.");
+        }
+
+        if (!Array.isArray(data.nodes) ||
+            !Array.isArray(data.edges) ||
+            !data.summary) {
+            throw new Error("The network API returned an unexpected response.");
+        }
+
+        allNodeData = data.nodes;
+        allEdgeData = data.edges;
+
+        updateSummary(data.summary);
+        createGraph(allNodeData, allEdgeData);
+
+        if (allNodeData.length === 0) {
+            setStatus("No transactions found. Run a prediction to populate the network.");
+        } else {
+            setStatus("Network loaded successfully. Select a node to investigate its relationships.");
+        }
+    } catch (error) {
+        console.error("Fraud network error:", error);
+        setStatus(error.message || "Unable to load network data.", true);
+        $("visibleNodeCount").textContent = "0";
+    } finally {
+        refreshButton.disabled = false;
+        refreshButton.textContent = "↻ Refresh Network";
+    }
+}
+
+$("refreshButton").addEventListener("click", loadNetwork);
+
+$("fitButton").addEventListener("click", function() {
+    if (!cy) return;
+
+    const visibleNodes = cy.nodes().filter(
+        node => node.style("display") !== "none"
+    );
+
+    if (visibleNodes.length > 0) {
+        cy.animate({
+            fit: {eles: visibleNodes, padding: 35},
+            duration: 300
+        });
+    }
+});
+
+$("riskFilter").addEventListener("change", applyFilters);
+$("transactionSearch").addEventListener("input", applyFilters);
+
+$("showConnectionsButton").addEventListener("click", function() {
+    if (!cy || !selectedNodeId) return;
+
+    const selected = cy.getElementById(selectedNodeId);
+
+    if (selected.length) {
+        const neighborhood = selected.closedNeighborhood();
+
+        cy.animate({
+            fit: {eles: neighborhood, padding: 75},
+            duration: 350
+        });
+    }
+});
+
+loadNetwork();
+</script>
+</body>
+</html>

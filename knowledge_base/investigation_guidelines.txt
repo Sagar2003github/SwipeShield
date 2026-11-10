@@ -1,0 +1,7 @@
+Investigation guideline — strongest contributors: Start investigation with the SHAP features having the largest absolute contribution. These features had the strongest local influence on the current model decision.
+
+Investigation guideline — increased-risk factors: If the strongest SHAP factors increased fraud risk, verify the cardholder activity and transaction context before approval.
+
+Investigation guideline — reduced-risk factors: Reduced-risk SHAP factors provide evidence that the current feature pattern moved the model away from fraud. They do not prove that a transaction is safe by themselves.
+
+Investigation guideline — evidence hierarchy: Combine model probability, SHAP contribution, retrieved security knowledge, and operational verification. RAG provides contextual knowledge; it is not an independent fraud classifier.

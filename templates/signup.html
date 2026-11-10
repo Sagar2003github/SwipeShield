@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwipeShield - Complete Registration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    body {
+      background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.94)), 
+                  url("{{ url_for('static', filename='bg.png') }}") no-repeat center center fixed;
+      background-size: cover;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    body::before {
+      content: ''; position: fixed; top: 15%; left: 25%; width: 250px; height: 250px;
+      background: rgba(56, 189, 248, 0.2); filter: blur(100px); border-radius: 50%; pointer-events: none;
+    }
+
+    .auth-card {
+      position: relative; z-index: 1;
+      background: rgba(21, 28, 44, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 30px;
+      border-radius: 20px;
+      width: 580px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.2), 0 20px 50px rgba(0, 0, 0, 0.9);
+    }
+
+    .auth-card::-webkit-scrollbar { width: 6px; }
+    .auth-card::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+
+    h2 { color: #38bdf8; font-size: 1.8rem; text-align: center; font-weight: 700; text-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
+    p.subtitle { color: #94a3b8; font-size: 0.85rem; text-align: center; margin-bottom: 20px; }
+
+    .section-title { font-size: 0.8rem; color: #38bdf8; font-weight: bold; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 4px; }
+
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .input-group { text-align: left; margin-bottom: 10px; }
+    .input-group label { display: block; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 4px; }
+    
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(11, 15, 25, 0.8);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus { border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+
+    .btn-signup {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: #0284c7;
+      color: white;
+      margin-top: 20px;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .btn-signup:hover { background: #0369a1; box-shadow: 0 0 25px rgba(56, 189, 248, 0.6); transform: translateY(-2px); }
+
+    .footer-text { margin-top: 15px; font-size: 0.85rem; color: #94a3b8; text-align: center; }
+    .footer-text a { color: #38bdf8; text-decoration: none; font-weight: 600; }
+
+    .msg { margin-top: 15px; font-size: 0.9rem; text-align: center; min-height: 20px; font-weight: bold; }
+    .error { color: #f87171; text-shadow: 0 0 8px rgba(248, 113, 113, 0.4); }
+    .success { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.4); }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <h2>💳 SwipeShield Registration</h2>
+    <p class="subtitle">Enter financial metadata to initialize intelligence profile</p>
+
+    <form id="signupForm">
+      <!-- Name Section -->
+      <div class="section-title">Personal Details</div>
+      <div class="grid-3">
+        <div class="input-group">
+          <label>First Name</label>
+          <input type="text" id="first_name" placeholder="John" required>
+        </div>
+        <div class="input-group">
+          <label>Middle Name</label>
+          <input type="text" id="middle_name" placeholder="M.">
+        </div>
+        <div class="input-group">
+          <label>Last Name</label>
+          <input type="text" id="last_name" placeholder="Doe" required>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Age</label>
+          <input type="number" id="age" min="18" max="100" placeholder="28" required>
+        </div>
+        <div class="input-group">
+          <label>Email / Username</label>
+          <input type="email" id="username" placeholder="john@example.com" required>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Create password" required>
+        </div>
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <input type="password" id="confirm_password" placeholder="Confirm password" required>
+        </div>
+      </div>
+
+      <!-- Banking Details -->
+      <div class="section-title">Financial Details</div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Primary Bank Name</label>
+          <input type="text" id="bank_name" placeholder="e.g. Chase / HDFC / Citi" required>
+        </div>
+        <div class="input-group">
+          <label>Credit Card Number</label>
+          <input type="text" id="card_number" placeholder="4532 8901 2234 8892" required>
+        </div>
+      </div>
+
+      <!-- Address Details -->
+      <div class="section-title">Location & Address</div>
+      <div class="input-group">
+        <label>Street Address</label>
+        <input type="text" id="address" placeholder="123 Financial Way, Suite 400" required>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label>City</label>
+          <input type="text" id="city" placeholder="New York" required>
+        </div>
+        <div class="input-group">
+          <label>Country</label>
+          <input type="text" id="country" placeholder="United States" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-signup">Complete Account Creation</button>
+    </form>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="footer-text">
+      Already registered? <a href="/login">Return to Log In</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const p = document.getElementById('password').value;
+      const cp = document.getElementById('confirm_password').value;
+      const msgBox = document.getElementById('msg');
+
+      if (p !== cp) {
+        msgBox.className = 'msg error';
+        msgBox.innerText = 'Passwords do not match!';
+        return;
+      }
+
+      msgBox.className = 'msg';
+      msgBox.innerText = 'Processing registration...';
+
+      const payload = {
+        first_name: document.getElementById('first_name').value,
+        middle_name: document.getElementById('middle_name').value,
+        last_name: document.getElementById('last_name').value,
+        age: document.getElementById('age').value,
+        username: document.getElementById('username').value,
+        password: p,
+        bank_name: document.getElementById('bank_name').value,
+        card_number: document.getElementById('card_number').value,
+        address: document.getElementById('address').value,
+        city: document.getElementById('city').value,
+        country: document.getElementById('country').value
+      };
+
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          msgBox.className = 'msg success';
+          msgBox.innerText = data.message + ' Redirecting to Login...';
+          setTimeout(() => { window.location.href = '/login'; }, 1500);
+        } else {
+          msgBox.className = 'msg error';
+          msgBox.innerText = data.message;
+        }
+      } catch (err) {
+        msgBox.className = 'msg error';
+        msgBox.innerText = 'Server error! Make sure app.py is running.';
+      }
+    });
+  </script>
+</body>
+</html>

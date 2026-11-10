@@ -1,0 +1,7 @@
+Fraud review rule — model risk first: The fraud classifier remains the source of truth for the transaction decision. Retrieved knowledge should support investigation and explain context; it must not silently override the model prediction.
+
+Fraud review rule — high risk: Transactions with a high fraud probability should receive manual review before approval, especially when multiple model features contribute toward higher fraud risk.
+
+Fraud review rule — low risk: A low fraud probability indicates that the supplied feature pattern is more consistent with legitimate transactions according to the trained model. Normal security controls should still apply.
+
+Fraud review rule — borderline risk: Transactions close to the configured fraud threshold deserve additional review because a small change in model probability or system threshold can change the final classification.

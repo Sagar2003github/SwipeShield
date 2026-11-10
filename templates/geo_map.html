@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>SwipeShield - Financial Telemetry Radar</title>
+
+
+    <!-- =====================================================
+         LEAFLET
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+
+
+    <style>
+
+        /* =====================================================
+           GLOBAL RESET
+        ====================================================== */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+
+            font-family:
+                'Segoe UI',
+                Tahoma,
+                Geneva,
+                Verdana,
+                sans-serif;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+
+            background:
+                #060913;
+
+            color:
+                #f8fafc;
+
+            display:
+                flex;
+
+            min-height:
+                100vh;
+
+            overflow-x:
+                hidden;
+        }
+
+
+        /* =====================================================
+           BACKGROUND CYBER GLOW
+        ====================================================== */
+
+        body::before {
+
+            content: '';
+
+            position: fixed;
+
+            top: -180px;
+            left: 180px;
+
+            width: 600px;
+            height: 600px;
+
+            background:
+                rgba(
+                    14,
+                    165,
+                    233,
+                    0.10
+                );
+
+            filter:
+                blur(170px);
+
+            border-radius:
+                50%;
+
+            pointer-events:
+                none;
+
+            z-index:
+                0;
+        }
+
+
+        body::after {
+
+            content: '';
+
+            position: fixed;
+
+            bottom: -200px;
+            right: 50px;
+
+            width: 550px;
+            height: 550px;
+
+            background:
+                rgba(
+                    99,
+                    102,
+                    241,
+                    0.08
+                );
+
+            filter:
+                blur(170px);
+
+            border-radius:
+                50%;
+
+            pointer-events:
+                none;
+
+            z-index:
+                0;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ====================================================== */
+
+        .sidebar {
+
+            width:
+                250px;
+
+            min-height:
+                100vh;
+
+            background:
+                rgba(
+                    7,
+                    12,
+                    24,
+                    0.97
+                );
+
+            backdrop-filter:
+                blur(20px);
+
+            border-right:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.30
+                );
+
+            padding:
+                30px 20px;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            gap:
+                12px;
+
+            z-index:
+                1000;
+
+            flex-shrink:
+                0;
+        }
+
+
+        .brand {
+
+            font-size:
+                1.6rem;
+
+            font-weight:
+                800;
+
+            color:
+                #38bdf8;
+
+            text-shadow:
+                0 0 18px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.75
+                );
+
+            margin-bottom:
+                4px;
+        }
+
+
+        .nav-section-title {
+
+            font-size:
+                0.68rem;
+
+            font-weight:
+                800;
+
+            color:
+                #64748b;
+
+            letter-spacing:
+                1.2px;
+
+            margin-top:
+                15px;
+
+            margin-bottom:
+                2px;
+
+            text-transform:
+                uppercase;
+        }
+
+
+        .nav-link {
+
+            color:
+                #94a3b8;
+
+            text-decoration:
+                none;
+
+            font-size:
+                0.9rem;
+
+            font-weight:
+                600;
+
+            padding:
+                10px 14px;
+
+            border-radius:
+                10px;
+
+            transition:
+                all 0.25s ease;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                10px;
+
+            border:
+                1px solid
+                transparent;
+        }
+
+
+        .nav-link:hover {
+
+            background:
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.10
+                );
+
+            color:
+                #7dd3fc;
+        }
+
+
+        .nav-link.active {
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.18
+                    ),
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.06
+                    )
+                );
+
+            color:
+                #7dd3fc;
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.45
+                );
+
+            box-shadow:
+                0 0 22px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.18
+                );
+        }
+
+
+        .nav-link.logout {
+
+            color:
+                #f87171;
+
+            margin-top:
+                auto;
+        }
+
+
+        .nav-link.logout:hover {
+
+            background:
+                rgba(
+                    239,
+                    68,
+                    68,
+                    0.10
+                );
+
+            border-color:
+                rgba(
+                    239,
+                    68,
+                    68,
+                    0.30
+                );
+        }
+
+
+        /* =====================================================
+           MAIN CONTENT
+        ====================================================== */
+
+        .main-content {
+
+            flex:
+                1;
+
+            padding:
+                28px 40px 32px;
+
+            z-index:
+                1;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            gap:
+                16px;
+
+            min-width:
+                0;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ====================================================== */
+
+        .page-title {
+
+            min-height:
+                48px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            gap:
+                20px;
+
+            color:
+                #ffffff;
+
+            font-size:
+                1.85rem;
+
+            font-weight:
+                800;
+
+            text-shadow:
+                0 0 18px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.35
+                );
+        }
+
+
+        .online-badge {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                7px;
+
+            padding:
+                8px 15px;
+
+            border-radius:
+                999px;
+
+            color:
+                #38bdf8;
+
+            background:
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.08
+                );
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.45
+                );
+
+            box-shadow:
+                0 0 18px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.15
+                );
+
+            font-size:
+                0.72rem;
+
+            font-weight:
+                800;
+
+            white-space:
+                nowrap;
+
+            letter-spacing:
+                0.5px;
+        }
+
+
+        /* =====================================================
+           MAIN MAP CONTAINER
+        ====================================================== */
+
+        .map-card {
+
+            position:
+                relative;
+
+            background:
+                rgba(
+                    7,
+                    13,
+                    26,
+                    0.95
+                );
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.42
+                );
+
+            border-radius:
+                22px;
+
+            padding:
+                16px;
+
+            box-shadow:
+
+                0 0 50px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.65
+                ),
+
+                inset 0 0 40px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.025
+                ),
+
+                0 0 25px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.12
+                );
+
+            overflow:
+                hidden;
+        }
+
+
+        /* =====================================================
+           MAP FRAME
+        ====================================================== */
+
+        .map-frame {
+
+            position:
+                relative;
+
+            border-radius:
+                17px;
+
+            overflow:
+                hidden;
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.55
+                );
+
+            box-shadow:
+                inset 0 0 35px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.7
+                );
+        }
+
+
+        /* =====================================================
+           MAP
+        ====================================================== */
+
+        #map {
+
+            width:
+                100%;
+
+            height:
+                545px;
+
+            background:
+                #050b16;
+        }
+
+
+        /* =====================================================
+           DARK MAP TILE FILTER
+           
+           IMPORTANT:
+           NO HUE ROTATE
+           NO INVERT
+           ====================================================== */
+
+        #map .leaflet-tile {
+
+            filter:
+                brightness(0.43)
+                contrast(1.35)
+                saturate(0.55);
+        }
+
+
+        /* =====================================================
+           BLUE MAP OVERLAY
+        ====================================================== */
+
+        .map-frame::after {
+
+            content:
+                '';
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            background:
+                linear-gradient(
+                    rgba(
+                        7,
+                        20,
+                        38,
+                        0.12
+                    ),
+                    rgba(
+                        4,
+                        12,
+                        25,
+                        0.12
+                    )
+                );
+
+            pointer-events:
+                none;
+
+            z-index:
+                300;
+        }
+
+
+        /* =====================================================
+           CYBER GRID
+        ====================================================== */
+
+        .map-grid {
+
+            position:
+                absolute;
+
+            inset:
+                0;
+
+            background:
+
+                linear-gradient(
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.07
+                    ) 1px,
+                    transparent 1px
+                ),
+
+                linear-gradient(
+                    90deg,
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.07
+                    ) 1px,
+                    transparent 1px
+                );
+
+            background-size:
+                65px 65px;
+
+            pointer-events:
+                none;
+
+            z-index:
+                310;
+        }
+
+
+        /* =====================================================
+           RADAR SWEEP
+        ====================================================== */
+
+        .radar-sweep {
+
+            position:
+                absolute;
+
+            width:
+                850px;
+
+            height:
+                850px;
+
+            left:
+                50%;
+
+            top:
+                50%;
+
+            margin-left:
+                -425px;
+
+            margin-top:
+                -425px;
+
+            border-radius:
+                50%;
+
+            background:
+
+                conic-gradient(
+                    from 0deg,
+
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0
+                    ) 0deg,
+
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.16
+                    ) 10deg,
+
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0
+                    ) 28deg,
+
+                    transparent 40deg
+                );
+
+            animation:
+                radarSweep 7s linear infinite;
+
+            pointer-events:
+                none;
+
+            z-index:
+                320;
+        }
+
+
+        @keyframes radarSweep {
+
+            from {
+
+                transform:
+                    rotate(0deg);
+            }
+
+            to {
+
+                transform:
+                    rotate(360deg);
+            }
+        }
+
+
+        /* =====================================================
+           RADAR CENTER GLOW
+        ====================================================== */
+
+        .radar-center {
+
+            position:
+                absolute;
+
+            left:
+                50%;
+
+            top:
+                50%;
+
+            width:
+                12px;
+
+            height:
+                12px;
+
+            transform:
+                translate(
+                    -50%,
+                    -50%
+                );
+
+            border-radius:
+                50%;
+
+            background:
+                #38bdf8;
+
+            box-shadow:
+
+                0 0 8px
+                #38bdf8,
+
+                0 0 20px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.8
+                );
+
+            pointer-events:
+                none;
+
+            z-index:
+                325;
+        }
+
+
+        /* =====================================================
+           MAP CORNER DECORATION
+        ====================================================== */
+
+        .corner {
+
+            position:
+                absolute;
+
+            width:
+                25px;
+
+            height:
+                25px;
+
+            z-index:
+                350;
+
+            pointer-events:
+                none;
+        }
+
+
+        .corner-tl {
+
+            top:
+                12px;
+
+            left:
+                12px;
+
+            border-top:
+                2px solid #38bdf8;
+
+            border-left:
+                2px solid #38bdf8;
+        }
+
+
+        .corner-tr {
+
+            top:
+                12px;
+
+            right:
+                12px;
+
+            border-top:
+                2px solid #38bdf8;
+
+            border-right:
+                2px solid #38bdf8;
+        }
+
+
+        .corner-bl {
+
+            bottom:
+                12px;
+
+            left:
+                12px;
+
+            border-bottom:
+                2px solid #38bdf8;
+
+            border-left:
+                2px solid #38bdf8;
+        }
+
+
+        .corner-br {
+
+            bottom:
+                12px;
+
+            right:
+                12px;
+
+            border-bottom:
+                2px solid #38bdf8;
+
+            border-right:
+                2px solid #38bdf8;
+        }
+
+
+        /* =====================================================
+           LEAFLET POPUP
+        ====================================================== */
+
+        .leaflet-popup-content-wrapper {
+
+            background:
+                rgba(
+                    7,
+                    13,
+                    26,
+                    0.98
+                ) !important;
+
+            color:
+                #f8fafc !important;
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.60
+                ) !important;
+
+            border-radius:
+                13px !important;
+
+            box-shadow:
+
+                0 0 25px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.75
+                ),
+
+                0 0 18px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.20
+                ) !important;
+        }
+
+
+        .leaflet-popup-tip {
+
+            background:
+                #080f1e !important;
+        }
+
+
+        .leaflet-popup-content {
+
+            margin:
+                14px !important;
+        }
+
+
+        /* =====================================================
+           POPUP CONTENT
+        ====================================================== */
+
+        .popup-title {
+
+            font-size:
+                0.9rem;
+
+            font-weight:
+                900;
+
+            margin-bottom:
+                11px;
+
+            letter-spacing:
+                0.3px;
+        }
+
+
+        .popup-row {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            gap:
+                18px;
+
+            margin:
+                7px 0;
+
+            font-size:
+                0.76rem;
+        }
+
+
+        .popup-label {
+
+            color:
+                #64748b;
+
+            font-weight:
+                600;
+        }
+
+
+        .popup-value {
+
+            color:
+                #e2e8f0;
+
+            font-weight:
+                800;
+
+            text-align:
+                right;
+        }
+
+
+        .risk-pill {
+
+            display:
+                inline-block;
+
+            margin-top:
+                5px;
+
+            padding:
+                4px 10px;
+
+            border-radius:
+                999px;
+
+            font-size:
+                0.65rem;
+
+            font-weight:
+                900;
+        }
+
+
+        .risk-critical {
+
+            color:
+                #fecdd3;
+
+            background:
+                rgba(
+                    244,
+                    63,
+                    94,
+                    0.15
+                );
+
+            border:
+                1px solid
+                #f43f5e;
+        }
+
+
+        .risk-high {
+
+            color:
+                #fed7aa;
+
+            background:
+                rgba(
+                    249,
+                    115,
+                    22,
+                    0.15
+                );
+
+            border:
+                1px solid
+                #f97316;
+        }
+
+
+        .risk-medium {
+
+            color:
+                #fde68a;
+
+            background:
+                rgba(
+                    245,
+                    158,
+                    11,
+                    0.15
+                );
+
+            border:
+                1px solid
+                #f59e0b;
+        }
+
+
+        .risk-low {
+
+            color:
+                #bbf7d0;
+
+            background:
+                rgba(
+                    34,
+                    197,
+                    94,
+                    0.15
+                );
+
+            border:
+                1px solid
+                #22c55e;
+        }
+
+
+        /* =====================================================
+           LEAFLET CONTROLS
+        ====================================================== */
+
+        .leaflet-control-zoom {
+
+            border:
+                none !important;
+        }
+
+
+        .leaflet-control-zoom a {
+
+            width:
+                34px !important;
+
+            height:
+                34px !important;
+
+            line-height:
+                32px !important;
+
+            background:
+                rgba(
+                    7,
+                    13,
+                    26,
+                    0.95
+                ) !important;
+
+            color:
+                #38bdf8 !important;
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.45
+                ) !important;
+        }
+
+
+        .leaflet-control-zoom a:hover {
+
+            background:
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.16
+                ) !important;
+        }
+
+
+        .leaflet-control-attribution {
+
+            background:
+                rgba(
+                    4,
+                    8,
+                    16,
+                    0.80
+                ) !important;
+
+            color:
+                #64748b !important;
+        }
+
+
+        .leaflet-control-attribution a {
+
+            color:
+                #38bdf8 !important;
+        }
+
+
+        /* =====================================================
+           STATISTICS
+        ====================================================== */
+
+        .map-stats {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap:
+                12px;
+
+            margin-top:
+                14px;
+        }
+
+
+        .stat-card {
+
+            position:
+                relative;
+
+            padding:
+                14px 17px;
+
+            border-radius:
+                14px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(
+                        15,
+                        23,
+                        42,
+                        0.95
+                    ),
+                    rgba(
+                        8,
+                        15,
+                        29,
+                        0.95
+                    )
+                );
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.16
+                );
+
+            box-shadow:
+                inset 0 0 20px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.025
+                );
+        }
+
+
+        .stat-card::before {
+
+            content:
+                '';
+
+            position:
+                absolute;
+
+            left:
+                0;
+
+            top:
+                10px;
+
+            bottom:
+                10px;
+
+            width:
+                2px;
+
+            background:
+                #38bdf8;
+
+            box-shadow:
+                0 0 10px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.6
+                );
+        }
+
+
+        .stat-label {
+
+            color:
+                #64748b;
+
+            font-size:
+                0.66rem;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                1px;
+
+            margin-bottom:
+                5px;
+        }
+
+
+        .stat-value {
+
+            color:
+                #38bdf8;
+
+            font-size:
+                1.35rem;
+
+            font-weight:
+                900;
+
+            text-shadow:
+                0 0 12px
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.30
+                );
+        }
+
+
+        /* =====================================================
+           LEGEND
+        ====================================================== */
+
+        .map-legend {
+
+            position:
+                absolute;
+
+            right:
+                34px;
+
+            bottom:
+                115px;
+
+            min-width:
+                190px;
+
+            padding:
+                13px 15px;
+
+            z-index:
+                500;
+
+            background:
+                rgba(
+                    5,
+                    10,
+                    20,
+                    0.94
+                );
+
+            border:
+                1px solid
+                rgba(
+                    56,
+                    189,
+                    248,
+                    0.35
+                );
+
+            border-radius:
+                13px;
+
+            backdrop-filter:
+                blur(12px);
+
+            box-shadow:
+                0 0 25px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.5
+                );
+        }
+
+
+        .legend-title {
+
+            color:
+                #38bdf8;
+
+            font-size:
+                0.72rem;
+
+            font-weight:
+                900;
+
+            letter-spacing:
+                0.7px;
+
+            margin-bottom:
+                9px;
+
+            text-transform:
+                uppercase;
+        }
+
+
+        .legend-row {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+
+            margin:
+                7px 0;
+
+            color:
+                #cbd5e1;
+
+            font-size:
+                0.72rem;
+
+            font-weight:
+                600;
+        }
+
+
+        .legend-dot {
+
+            width:
+                9px;
+
+            height:
+                9px;
+
+            border-radius:
+                50%;
+
+            flex-shrink:
+                0;
+        }
+
+
+        .legend-fraud {
+
+            background:
+                #ff0055;
+
+            box-shadow:
+                0 0 10px
+                #ff0055;
+        }
+
+
+        .legend-high {
+
+            background:
+                #f97316;
+
+            box-shadow:
+                0 0 10px
+                #f97316;
+        }
+
+
+        .legend-medium {
+
+            background:
+                #f59e0b;
+
+            box-shadow:
+                0 0 10px
+                #f59e0b;
+        }
+
+
+        .legend-safe {
+
+            background:
+                #00ffaa;
+
+            box-shadow:
+                0 0 10px
+                #00ffaa;
+        }
+
+
+        /* =====================================================
+           ERROR
+        ====================================================== */
+
+        .map-error {
+
+            display:
+                none;
+
+            position:
+                absolute;
+
+            top:
+                25px;
+
+            left:
+                50%;
+
+            transform:
+                translateX(-50%);
+
+            z-index:
+                800;
+
+            padding:
+                9px 15px;
+
+            background:
+                rgba(
+                    127,
+                    29,
+                    29,
+                    0.96
+                );
+
+            color:
+                #fecaca;
+
+            border:
+                1px solid
+                #ef4444;
+
+            border-radius:
+                9px;
+
+            font-size:
+                0.72rem;
+
+            font-weight:
+                800;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 1100px) {
+
+            .main-content {
+
+                padding-left:
+                    25px;
+
+                padding-right:
+                    25px;
+            }
+
+
+            .map-stats {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+        }
+
+
+        @media (max-width: 800px) {
+
+            body {
+
+                display:
+                    block;
+            }
+
+
+            .sidebar {
+
+                width:
+                    100%;
+
+                min-height:
+                    auto;
+
+                border-right:
+                    none;
+
+                border-bottom:
+                    1px solid
+                    rgba(
+                        56,
+                        189,
+                        248,
+                        0.3
+                    );
+            }
+
+
+            .main-content {
+
+                padding:
+                    20px;
+            }
+
+
+            .page-title {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    flex-start;
+
+                font-size:
+                    1.45rem;
+            }
+
+
+            #map {
+
+                height:
+                    500px;
+            }
+
+
+            .map-legend {
+
+                right:
+                    25px;
+
+                bottom:
+                    105px;
+            }
+        }
+
+
+        @media (max-width: 550px) {
+
+            .map-stats {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            #map {
+
+                height:
+                    450px;
+            }
+
+
+            .map-legend {
+
+                right:
+                    18px;
+
+                bottom:
+                    100px;
+
+                min-width:
+                    165px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+
+        <div class="brand">
+            💳 SwipeShield
+        </div>
+
+
+        <div class="nav-section-title">
+            CORE PLATFORM
+        </div>
+
+
+        <a
+            href="/dashboard"
+            class="nav-link"
+        >
+            📊 Dashboard
+        </a>
+
+
+        <a
+            href="/predict_page"
+            class="nav-link"
+        >
+            🔍 Analyze Fraud
+        </a>
+
+
+        <a
+            href="/logs_page"
+            class="nav-link"
+        >
+            📜 Audit Logs
+        </a>
+
+
+        <div class="nav-section-title">
+            AI METRICS & SECURITY
+        </div>
+
+
+        <a
+            href="/alerts_page"
+            class="nav-link"
+        >
+            🚨 Threat Alerts
+        </a>
+
+
+        <a
+            href="/model_health"
+            class="nav-link"
+        >
+            🧠 Model Health
+        </a>
+
+
+        <a
+            href="/map_page"
+            class="nav-link active"
+        >
+            🌍 Global Threat Map
+        </a>
+
+
+        <div class="nav-section-title">
+            SYSTEM & ADMIN
+        </div>
+
+
+        <a
+            href="/profile"
+            class="nav-link"
+        >
+            👤 Security Profile
+        </a>
+
+
+        <a
+            href="/logout"
+            class="nav-link logout"
+        >
+            🚪 Logout
+        </a>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- HEADER -->
+
+        <div class="page-title">
+
+
+            <div>
+                📡 NEXUS-FINRADAR™
+                Telemetry Grid
+            </div>
+
+
+            <span
+                class="online-badge"
+                id="onlineBadge"
+            >
+                ● NEXUS-FINRADAR SWEEP ONLINE
+            </span>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             MAP CARD
+        ================================================== -->
+
+        <div class="map-card">
+
+
+            <div class="map-frame">
+
+
+                <!-- MAP -->
+
+                <div id="map"></div>
+
+
+                <!-- GRID -->
+
+                <div class="map-grid"></div>
+
+
+                <!-- RADAR -->
+
+                <div class="radar-sweep"></div>
+
+
+                <div class="radar-center"></div>
+
+
+                <!-- CORNERS -->
+
+                <div
+                    class="corner corner-tl"
+                ></div>
+
+                <div
+                    class="corner corner-tr"
+                ></div>
+
+                <div
+                    class="corner corner-bl"
+                ></div>
+
+                <div
+                    class="corner corner-br"
+                ></div>
+
+
+                <!-- ERROR -->
+
+                <div
+                    class="map-error"
+                    id="mapError"
+                >
+                    ⚠ Unable to load telemetry data
+                </div>
+
+
+                <!-- =================================================
+                     LEGEND
+                ================================================== -->
+
+                <div class="map-legend">
+
+
+                    <div class="legend-title">
+                        Threat Classification
+                    </div>
+
+
+                    <div class="legend-row">
+
+                        <span
+                            class="legend-dot legend-fraud"
+                        ></span>
+
+                        Fraud / Critical
+
+                    </div>
+
+
+                    <div class="legend-row">
+
+                        <span
+                            class="legend-dot legend-high"
+                        ></span>
+
+                        High Risk
+
+                    </div>
+
+
+                    <div class="legend-row">
+
+                        <span
+                            class="legend-dot legend-medium"
+                        ></span>
+
+                        Medium Risk
+
+                    </div>
+
+
+                    <div class="legend-row">
+
+                        <span
+                            class="legend-dot legend-safe"
+                        ></span>
+
+                        Safe
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 STATISTICS
+            ================================================== -->
+
+            <div class="map-stats">
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Transactions
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="totalTransactions"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Fraud Alerts
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="fraudTransactions"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Safe Activity
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="safeTransactions"
+                    >
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Average Risk
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="averageRisk"
+                    >
+                        0%
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+
+        /* =====================================================
+           INITIALIZE MAP
+        ====================================================== */
+
+        const map =
+            L.map(
+                'map',
+                {
+                    zoomControl: true,
+
+                    attributionControl: true
+                }
+            ).setView(
+                [
+                    20.5937,
+                    78.9629
+                ],
+                4
+            );
+
+
+
+        /* =====================================================
+           OPENSTREETMAP
+           
+           FREE
+           NO API KEY
+        ====================================================== */
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+
+                maxZoom:
+                    19,
+
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+            }
+        ).addTo(map);
+
+
+
+        /* =====================================================
+           MARKER LAYER
+        ====================================================== */
+
+        const markerLayer =
+            L.layerGroup().addTo(map);
+
+
+
+        /* =====================================================
+           SAFE NUMBER
+        ====================================================== */
+
+        function safeNumber(value) {
+
+            const number =
+                Number(value);
+
+
+            if (
+                Number.isNaN(number)
+            ) {
+
+                return 0;
+            }
+
+
+            return number;
+        }
+
+
+
+        /* =====================================================
+           ESCAPE HTML
+        ====================================================== */
+
+        function escapeHtml(value) {
+
+            const div =
+                document.createElement(
+                    'div'
+                );
+
+
+            div.textContent =
+                String(
+                    value ?? ''
+                );
+
+
+            return div.innerHTML;
+        }
+
+
+
+        /* =====================================================
+           RISK LEVEL
+        ====================================================== */
+
+        function getRiskLevel(
+            risk,
+            prediction
+        ) {
+
+            const score =
+                safeNumber(
+                    risk
+                );
+
+
+            const pred =
+                String(
+                    prediction || ''
+                ).toLowerCase();
+
+
+            if (
+                pred.includes('fraud')
+                ||
+                score >= 80
+            ) {
+
+                return 'critical';
+            }
+
+
+            if (
+                score >= 50
+            ) {
+
+                return 'high';
+            }
+
+
+            if (
+                score >= 25
+            ) {
+
+                return 'medium';
+            }
+
+
+            return 'low';
+        }
+
+
+
+        /* =====================================================
+           RISK COLOR
+        ====================================================== */
+
+        function getRiskColor(
+            riskLevel
+        ) {
+
+            switch (
+                riskLevel
+            ) {
+
+                case 'critical':
+
+                    return '#ff0055';
+
+
+                case 'high':
+
+                    return '#f97316';
+
+
+                case 'medium':
+
+                    return '#f59e0b';
+
+
+                default:
+
+                    return '#00ffaa';
+            }
+        }
+
+
+
+        /* =====================================================
+           MARKER SIZE
+        ====================================================== */
+
+        function getMarkerRadius(
+            riskLevel
+        ) {
+
+            switch (
+                riskLevel
+            ) {
+
+                case 'critical':
+
+                    return 11;
+
+
+                case 'high':
+
+                    return 9;
+
+
+                case 'medium':
+
+                    return 8;
+
+
+                default:
+
+                    return 7;
+            }
+        }
+
+
+
+        /* =====================================================
+           POPUP
+        ====================================================== */
+
+        function createPopup(
+            point,
+            riskLevel
+        ) {
+
+
+            const prediction =
+                String(
+                    point.prediction ||
+                    'Unknown'
+                );
+
+
+            const amount =
+                safeNumber(
+                    point.amount
+                );
+
+
+            const risk =
+                safeNumber(
+                    point.risk
+                );
+
+
+            const card =
+                escapeHtml(
+                    point.card ||
+                    'N/A'
+                );
+
+
+            const city =
+                escapeHtml(
+                    point.city ||
+                    'Unknown'
+                );
+
+
+            const color =
+                getRiskColor(
+                    riskLevel
+                );
+
+
+            let title;
+
+
+            if (
+                riskLevel ===
+                'critical'
+            ) {
+
+                title =
+                    '🚨 FRAUD ANOMALY DETECTED';
+
+            }
+            else if (
+                riskLevel ===
+                'high'
+            ) {
+
+                title =
+                    '⚠ HIGH RISK TRANSACTION';
+
+            }
+            else if (
+                riskLevel ===
+                'medium'
+            ) {
+
+                title =
+                    '🟡 MEDIUM RISK TRANSACTION';
+
+            }
+            else {
+
+                title =
+                    '✅ SAFE TRANSACTION';
+            }
+
+
+
+            return `
+
+                <div>
+
+                    <div
+                        class="popup-title"
+                        style="
+                            color:${color};
+                            text-shadow:
+                                0 0 8px
+                                ${color};
+                        "
+                    >
+
+                        ${title}
+
+                    </div>
+
+
+                    <div class="popup-row">
+
+                        <span class="popup-label">
+                            Card
+                        </span>
+
+                        <span class="popup-value">
+                            ${card}
+                        </span>
+
+                    </div>
+
+
+                    <div class="popup-row">
+
+                        <span class="popup-label">
+                            Amount
+                        </span>
+
+                        <span class="popup-value">
+                            $${amount.toFixed(2)}
+                        </span>
+
+                    </div>
+
+
+                    <div class="popup-row">
+
+                        <span class="popup-label">
+                            Location
+                        </span>
+
+                        <span class="popup-value">
+                            ${city}
+                        </span>
+
+                    </div>
+
+
+                    <div class="popup-row">
+
+                        <span class="popup-label">
+                            Prediction
+                        </span>
+
+                        <span class="popup-value">
+                            ${escapeHtml(
+                                prediction
+                            )}
+                        </span>
+
+                    </div>
+
+
+                    <div class="popup-row">
+
+                        <span class="popup-label">
+                            Threat Score
+                        </span>
+
+                        <strong
+                            style="
+                                color:${color};
+                            "
+                        >
+                            ${risk.toFixed(1)}%
+                        </strong>
+
+                    </div>
+
+
+                    <span
+                        class="
+                            risk-pill
+                            risk-${riskLevel}
+                        "
+                    >
+                        ${riskLevel.toUpperCase()}
+                    </span>
+
+                </div>
+
+            `;
+        }
+
+
+
+        /* =====================================================
+           LOAD GEO DATA
+        ====================================================== */
+
+        async function loadMapData() {
+
+
+            try {
+
+
+                const response =
+                    await fetch(
+                        '/api/geo_data',
+                        {
+
+                            method:
+                                'GET',
+
+                            headers: {
+
+                                'Accept':
+                                    'application/json'
+
+                            },
+
+                            cache:
+                                'no-store'
+
+                        }
+                    );
+
+
+
+                if (
+                    !response.ok
+                ) {
+
+                    throw new Error(
+                        'Geo API returned HTTP ' +
+                        response.status
+                    );
+                }
+
+
+
+                const responseData =
+                    await response.json();
+
+
+
+                console.log(
+                    'SwipeShield Geo Data:',
+                    responseData
+                );
+
+
+
+                /* =============================================
+                   SUPPORT MULTIPLE RESPONSE FORMATS
+                ============================================== */
+
+                let locations = [];
+
+
+                if (
+                    Array.isArray(
+                        responseData
+                    )
+                ) {
+
+                    locations =
+                        responseData;
+
+                }
+                else if (
+                    Array.isArray(
+                        responseData.locations
+                    )
+                ) {
+
+                    locations =
+                        responseData.locations;
+
+                }
+                else if (
+                    Array.isArray(
+                        responseData.data
+                    )
+                ) {
+
+                    locations =
+                        responseData.data;
+
+                }
+                else if (
+                    Array.isArray(
+                        responseData.results
+                    )
+                ) {
+
+                    locations =
+                        responseData.results;
+                }
+
+
+
+                /* =============================================
+                   CLEAR EXISTING MARKERS
+                ============================================== */
+
+                markerLayer.clearLayers();
+
+
+
+                /* =============================================
+                   STATISTICS
+                ============================================== */
+
+                let total =
+                    locations.length;
+
+
+                let fraud =
+                    0;
+
+
+                let safe =
+                    0;
+
+
+                let totalRisk =
+                    0;
+
+
+
+                /* =============================================
+                   CREATE MARKERS
+                ============================================== */
+
+                locations.forEach(
+                    point => {
+
+
+                        const lat =
+                            safeNumber(
+                                point.lat
+                            );
+
+
+                        const lng =
+                            safeNumber(
+                                point.lng
+                            );
+
+
+                        /*
+                         * Skip invalid coordinates
+                         */
+
+                        if (
+                            !Number.isFinite(lat)
+                            ||
+                            !Number.isFinite(lng)
+                            ||
+                            (
+                                lat === 0
+                                &&
+                                lng === 0
+                            )
+                        ) {
+
+                            return;
+                        }
+
+
+
+                        const prediction =
+                            point.prediction ||
+                            'Unknown';
+
+
+
+                        const risk =
+                            safeNumber(
+                                point.risk
+                            );
+
+
+
+                        const riskLevel =
+                            getRiskLevel(
+                                risk,
+                                prediction
+                            );
+
+
+
+                        const color =
+                            getRiskColor(
+                                riskLevel
+                            );
+
+
+
+                        const radius =
+                            getMarkerRadius(
+                                riskLevel
+                            );
+
+
+
+                        totalRisk +=
+                            risk;
+
+
+
+                        /* =====================================
+                           FRAUD / SAFE COUNTER
+                        ====================================== */
+
+                        if (
+                            riskLevel ===
+                                'critical'
+                            ||
+                            riskLevel ===
+                                'high'
+                        ) {
+
+                            fraud++;
+
+                        }
+                        else {
+
+                            safe++;
+                        }
+
+
+
+                        /* =====================================
+                           OUTER GLOW
+                        ====================================== */
+
+                        if (
+                            riskLevel ===
+                                'critical'
+                            ||
+                            riskLevel ===
+                                'high'
+                        ) {
+
+
+                            L.circleMarker(
+                                [
+                                    lat,
+                                    lng
+                                ],
+                                {
+
+                                    radius:
+                                        radius + 8,
+
+                                    fillColor:
+                                        'transparent',
+
+                                    color:
+                                        color,
+
+                                    weight:
+                                        1.5,
+
+                                    opacity:
+                                        0.35,
+
+                                    fillOpacity:
+                                        0,
+
+                                    interactive:
+                                        false
+
+                                }
+                            )
+                            .addTo(
+                                markerLayer
+                            );
+
+                        }
+
+
+
+                        /* =====================================
+                           MAIN MARKER
+                        ====================================== */
+
+                        const marker =
+                            L.circleMarker(
+                                [
+                                    lat,
+                                    lng
+                                ],
+                                {
+
+                                    radius:
+                                        radius,
+
+                                    fillColor:
+                                        color,
+
+                                    color:
+                                        '#ffffff',
+
+                                    weight:
+                                        2,
+
+                                    opacity:
+                                        1,
+
+                                    fillOpacity:
+                                        0.95
+
+                                }
+                            )
+                            .addTo(
+                                markerLayer
+                            );
+
+
+
+                        /* =====================================
+                           POPUP
+                        ====================================== */
+
+                        marker.bindPopup(
+                            createPopup(
+                                point,
+                                riskLevel
+                            )
+                        );
+
+
+                    }
+                );
+
+
+
+                /* =============================================
+                   UPDATE STATISTICS
+                ============================================== */
+
+                document
+                    .getElementById(
+                        'totalTransactions'
+                    )
+                    .textContent =
+                    total.toLocaleString();
+
+
+                document
+                    .getElementById(
+                        'fraudTransactions'
+                    )
+                    .textContent =
+                    fraud.toLocaleString();
+
+
+                document
+                    .getElementById(
+                        'safeTransactions'
+                    )
+                    .textContent =
+                    safe.toLocaleString();
+
+
+
+                const averageRisk =
+                    total > 0
+                        ? totalRisk / total
+                        : 0;
+
+
+
+                document
+                    .getElementById(
+                        'averageRisk'
+                    )
+                    .textContent =
+                    averageRisk.toFixed(1) +
+                    '%';
+
+
+
+                /* =============================================
+                   FIT MAP TO DATA
+                ============================================== */
+
+                const visibleMarkers =
+                    markerLayer
+                        .getLayers()
+                        .filter(
+                            layer =>
+                                layer instanceof
+                                L.CircleMarker
+                        );
+
+
+
+                if (
+                    visibleMarkers.length >
+                    0
+                ) {
+
+
+                    const bounds =
+                        L.featureGroup(
+                            visibleMarkers
+                        ).getBounds();
+
+
+                    if (
+                        bounds.isValid()
+                    ) {
+
+                        map.fitBounds(
+                            bounds,
+                            {
+
+                                padding:
+                                    [
+                                        45,
+                                        45
+                                    ],
+
+                                maxZoom:
+                                    5
+
+                            }
+                        );
+
+                    }
+
+                }
+
+
+
+                /* =============================================
+                   ONLINE STATUS
+                ============================================== */
+
+                const badge =
+                    document
+                        .getElementById(
+                            'onlineBadge'
+                        );
+
+
+                badge.textContent =
+                    '● NEXUS-FINRADAR TELEMETRY ONLINE';
+
+
+                badge.style.color =
+                    '#38bdf8';
+
+
+                badge.style.borderColor =
+                    'rgba(56,189,248,0.45)';
+
+
+
+            }
+            catch (error) {
+
+
+                console.error(
+                    'FinRadar Geo Error:',
+                    error
+                );
+
+
+
+                const errorBox =
+                    document
+                        .getElementById(
+                            'mapError'
+                        );
+
+
+                errorBox.style.display =
+                    'block';
+
+
+
+                const badge =
+                    document
+                        .getElementById(
+                            'onlineBadge'
+                        );
+
+
+                badge.textContent =
+                    '● TELEMETRY CONNECTION ERROR';
+
+
+                badge.style.color =
+                    '#f87171';
+
+
+                badge.style.borderColor =
+                    'rgba(248,113,113,0.45)';
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           START MAP DATA
+        ====================================================== */
+
+        loadMapData();
+
+
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+Risk level — low: A fraud probability below 25% is categorized as low risk in the SwipeShield explanation layer. This label is an interface interpretation and does not guarantee legitimacy.
+
+Risk level — medium: A fraud probability from 25% up to but not including 50% is categorized as medium risk in the SwipeShield explanation layer and may warrant additional scrutiny.
+
+Risk level — high: A fraud probability from 50% up to but not including 80% is categorized as high risk in the SwipeShield explanation layer and should normally receive review before approval.
+
+Risk level — critical: A fraud probability of 80% or above is categorized as critical risk in the SwipeShield explanation layer and should receive priority investigation.

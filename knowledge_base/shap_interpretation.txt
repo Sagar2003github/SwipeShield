@@ -1,0 +1,5 @@
+SHAP interpretation — positive contribution: A positive SHAP contribution means that, for this transaction, the feature pushed the model output toward the fraud class. A larger absolute contribution means a stronger local influence on the model output.
+
+SHAP interpretation — negative contribution: A negative SHAP contribution means that, for this transaction, the feature pushed the model output away from the fraud class. It therefore reduced the model's fraud-risk output for this specific transaction.
+
+SHAP interpretation — local explanation: SHAP values explain an individual prediction. They should be interpreted together with the transaction values and the model's probability rather than as universal fraud rules.

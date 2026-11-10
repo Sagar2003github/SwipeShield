@@ -1,0 +1,2052 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d18">
+  <title>SwipeShield | Analyze Transaction</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    /* ===================================================
+       SWIPESHIELD - ANALYZE TRANSACTION
+       Page-specific layout and visual styling
+       =================================================== */
+
+    body.analyze-page {
+      --cyan: #36d9ff;
+      --cyan-soft: #a3efff;
+      --green: #48d6a0;
+      --red: #ff526d;
+      --gold: #ffc96b;
+      --bg: #050914;
+      --panel: #0b1422;
+      --panel2: #0e1a2b;
+      --border: rgba(54,217,255,.17);
+      --text: #e7f0fa;
+      --muted: #8394aa;
+
+      display: flex !important;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 80% 0%, rgba(54,217,255,.08), transparent 38%),
+        var(--bg) !important;
+      color: var(--text) !important;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    body.analyze-page *,
+    body.analyze-page *::before,
+    body.analyze-page *::after {
+      box-sizing: border-box;
+    }
+
+    body.analyze-page::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .2;
+      background-image:
+        linear-gradient(rgba(54,217,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(54,217,255,.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+
+    body.analyze-page a {
+      color: inherit;
+    }
+
+    body.analyze-page button,
+    body.analyze-page input {
+      font: inherit;
+    }
+
+    /* Sidebar */
+
+    body.analyze-page .sidebar {
+      position: sticky !important;
+      top: 0;
+      z-index: 10;
+      display: flex !important;
+      flex: 0 0 248px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      width: 248px !important;
+      height: 100vh;
+      min-height: 100vh;
+      padding: 28px 17px !important;
+      overflow-y: auto;
+      background: rgba(7,14,25,.98) !important;
+      border-right: 1px solid var(--border) !important;
+    }
+
+    body.analyze-page .brand {
+      display: block;
+      margin: 0 0 17px;
+      color: var(--cyan) !important;
+      font-size: 1.35rem;
+      font-weight: 850;
+      text-decoration: none;
+      letter-spacing: -.5px;
+      text-shadow: none !important;
+    }
+
+    body.analyze-page .nav-section-title {
+      margin: 17px 0 4px;
+      color: #71869d !important;
+      font-size: .64rem;
+      font-weight: 800;
+      letter-spacing: 1.15px;
+      text-transform: uppercase;
+    }
+
+    body.analyze-page .nav-link {
+      display: flex !important;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      min-height: 41px;
+      padding: 10px 11px !important;
+      color: #a9b8ca !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      border-radius: 9px;
+      font-size: .81rem !important;
+      text-decoration: none;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+
+    body.analyze-page .nav-link:hover,
+    body.analyze-page .nav-link.active {
+      color: var(--cyan) !important;
+      background: rgba(54,217,255,.08) !important;
+      border-color: rgba(54,217,255,.18) !important;
+    }
+
+    body.analyze-page .nav-link.logout {
+      color: var(--red) !important;
+    }
+
+    body.analyze-page .sidebar-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: auto;
+      padding: 13px 10px;
+      background: rgba(72,214,160,.045);
+      border: 1px solid rgba(72,214,160,.14);
+      border-radius: 10px;
+    }
+
+    body.analyze-page .sidebar-status > span:last-child {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    body.analyze-page .sidebar-status strong {
+      color: #dcebf7;
+      font-size: .73rem;
+    }
+
+    body.analyze-page .sidebar-status small {
+      color: var(--muted);
+      font-size: .67rem;
+    }
+
+    body.analyze-page .pulse-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      flex: 0 0 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(72,214,160,.45);
+    }
+
+    /* Main layout */
+
+    body.analyze-page .main-content {
+      position: relative;
+      z-index: 1;
+      flex: 1 1 auto;
+      width: calc(100% - 248px);
+      min-width: 0;
+      max-width: 1700px;
+      margin: 0 auto;
+      padding: 34px clamp(20px, 3vw, 44px);
+      background: transparent !important;
+    }
+
+    body.analyze-page .analyze-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 22px;
+      margin: 0 0 29px;
+    }
+
+    body.analyze-page .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 13px;
+      color: var(--cyan);
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    body.analyze-page .page-title {
+      margin: 0 0 11px;
+      color: #f0f7ff !important;
+      font-size: clamp(1.9rem, 3vw, 2.55rem);
+      font-weight: 850;
+      line-height: 1.2;
+      letter-spacing: -1.15px;
+    }
+
+    body.analyze-page .page-subtitle {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted) !important;
+      font-size: .88rem;
+      line-height: 1.8;
+    }
+
+    body.analyze-page .header-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0;
+      margin-top: 5px;
+      padding: 10px 13px;
+      color: #a9c5d8;
+      background: rgba(54,217,255,.045);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: .64rem;
+      font-weight: 800;
+      letter-spacing: .65px;
+    }
+
+    body.analyze-page .header-status span {
+      color: var(--green);
+    }
+
+    /* Main workspace */
+
+    body.analyze-page .workspace-grid {
+      display: grid !important;
+      grid-template-columns: minmax(260px, .88fr) minmax(0, 1.35fr);
+      align-items: start;
+      gap: 23px;
+      width: 100%;
+      margin: 0 0 25px;
+    }
+
+    body.analyze-page .visual-column,
+    body.analyze-page .form-column {
+      display: flex;
+      flex-direction: column;
+      gap: 19px;
+      min-width: 0;
+    }
+
+    body.analyze-page .section-kicker {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--cyan);
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+    }
+
+    body.analyze-page .section-kicker span {
+      color: #71869d;
+      font-size: .6rem;
+    }
+
+    /* Payment card */
+
+    body.analyze-page .credit-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 222px;
+      padding: 23px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 85% 12%, rgba(54,217,255,.2), transparent 35%),
+        linear-gradient(135deg, #10283b, #091421 75%) !important;
+      border: 1px solid rgba(54,217,255,.3) !important;
+      border-radius: 17px !important;
+      box-shadow: 0 18px 45px rgba(0,0,0,.25) !important;
+      transition: border-color .25s, transform .25s;
+    }
+
+    body.analyze-page .credit-card::after {
+      content: "";
+      position: absolute;
+      right: -55px;
+      bottom: -95px;
+      width: 200px;
+      height: 200px;
+      border: 1px solid rgba(54,217,255,.14);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 23px rgba(54,217,255,.025),
+        0 0 0 48px rgba(54,217,255,.02);
+      pointer-events: none;
+    }
+
+    body.analyze-page .card-glow {
+      position: absolute;
+      top: -90px;
+      left: -80px;
+      width: 190px;
+      height: 190px;
+      background: rgba(54,217,255,.12);
+      filter: blur(55px);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    body.analyze-page .card-top,
+    body.analyze-page .card-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    body.analyze-page .chip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      width: 35px;
+      height: 27px;
+      padding: 4px;
+      background: linear-gradient(135deg, #d7c28a, #8f8259);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+    }
+
+    body.analyze-page .chip span {
+      width: 40%;
+      flex: 1 1 35%;
+      border: 1px solid rgba(40,40,40,.25);
+      border-radius: 2px;
+    }
+
+    body.analyze-page .card-vendor {
+      color: #e6f7ff;
+      font-size: 1.15rem;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+
+    body.analyze-page .card-middle {
+      position: relative;
+      z-index: 1;
+      margin: 22px 0;
+    }
+
+    body.analyze-page .card-label {
+      margin-bottom: 8px;
+      color: #89a8be;
+      font-size: .59rem;
+      font-weight: 800;
+      letter-spacing: 1.25px;
+    }
+
+    body.analyze-page .card-number {
+      color: #f0faff;
+      font-size: clamp(.94rem, 1.5vw, 1.28rem);
+      font-weight: 750;
+      letter-spacing: 1.6px;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .card-val {
+      color: #d5e6f2;
+      font-size: .75rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .card-watermark {
+      position: absolute;
+      right: 19px;
+      bottom: 9px;
+      z-index: 0;
+      color: rgba(255,255,255,.05);
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    body.analyze-page .card-watermark span {
+      color: rgba(54,217,255,.12);
+    }
+
+    body.analyze-page .credit-card.card-safe {
+      border-color: rgba(72,214,160,.7) !important;
+    }
+
+    body.analyze-page .credit-card.card-fraud {
+      border-color: rgba(255,82,109,.8) !important;
+    }
+
+    /* Info and workflow panels */
+
+    body.analyze-page .info-panel,
+    body.analyze-page .workflow-panel {
+      padding: 19px;
+      background: linear-gradient(145deg, rgba(12,25,41,.96), rgba(7,15,27,.96));
+      border: 1px solid var(--border);
+      border-radius: 13px;
+    }
+
+    body.analyze-page .info-panel {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+    }
+
+    body.analyze-page .info-icon,
+    body.analyze-page .panel-icon,
+    body.analyze-page .batch-icon {
+      display: grid;
+      place-items: center;
+      width: 39px;
+      height: 39px;
+      flex: 0 0 39px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.08);
+      border: 1px solid rgba(54,217,255,.16);
+      border-radius: 10px;
+      font-size: 1.15rem;
+    }
+
+    body.analyze-page .info-panel h3 {
+      margin: 1px 0 7px;
+      color: #e5f1fb;
+      font-size: .91rem;
+    }
+
+    body.analyze-page .info-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .76rem;
+      line-height: 1.75;
+    }
+
+    body.analyze-page .workflow-heading {
+      margin-bottom: 17px;
+      color: #9db2c6;
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+    }
+
+    body.analyze-page .workflow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(132,157,183,.1);
+    }
+
+    body.analyze-page .step-number {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.07);
+      border: 1px solid rgba(54,217,255,.14);
+      border-radius: 8px;
+      font-size: .69rem;
+      font-weight: 850;
+    }
+
+    body.analyze-page .workflow-step div {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    body.analyze-page .workflow-step strong {
+      color: #dce8f4;
+      font-size: .77rem;
+    }
+
+    body.analyze-page .workflow-step small {
+      color: var(--muted);
+      font-size: .69rem;
+      line-height: 1.6;
+    }
+
+    /* Form panel */
+
+    body.analyze-page .form-card,
+    body.analyze-page .result-card,
+    body.analyze-page .batch-card {
+      min-width: 0;
+      padding: 23px;
+      background: linear-gradient(145deg, rgba(12,25,41,.97), rgba(7,15,27,.97)) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 15px !important;
+      box-shadow: 0 16px 40px rgba(0,0,0,.2) !important;
+    }
+
+    body.analyze-page .panel-heading,
+    body.analyze-page .batch-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      margin-bottom: 22px;
+    }
+
+    body.analyze-page .panel-heading > div:last-child,
+    body.analyze-page .batch-header > div:nth-child(2) {
+      min-width: 0;
+      flex: 1;
+    }
+
+    body.analyze-page .panel-heading .section-kicker,
+    body.analyze-page .batch-header .section-kicker {
+      margin-bottom: 6px;
+    }
+
+    body.analyze-page .panel-heading h2,
+    body.analyze-page .batch-header h2 {
+      margin: 0 0 6px;
+      color: #eaf4ff;
+      font-size: 1.12rem;
+      font-weight: 800;
+    }
+
+    body.analyze-page .panel-heading p,
+    body.analyze-page .batch-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .77rem;
+      line-height: 1.65;
+    }
+
+    body.analyze-page .input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    body.analyze-page .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    body.analyze-page .input-group.full {
+      grid-column: 1 / -1;
+    }
+
+    body.analyze-page .input-group label {
+      color: #c5d4e4;
+      font-size: .74rem;
+      font-weight: 750;
+    }
+
+    body.analyze-page .input-with-icon {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      background: #060d17;
+      border: 1px solid rgba(132,157,183,.24);
+      border-radius: 9px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    body.analyze-page .input-with-icon:focus-within {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(54,217,255,.08);
+    }
+
+    body.analyze-page .input-with-icon > span {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      flex: 0 0 40px;
+      color: #7794aa;
+      font-size: .9rem;
+    }
+
+    body.analyze-page .input-group input {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      padding: 10px 12px;
+      color: var(--text) !important;
+      background: #060d17 !important;
+      border: 1px solid rgba(132,157,183,.24) !important;
+      border-radius: 9px !important;
+      outline: none;
+      box-shadow: none !important;
+    }
+
+    body.analyze-page .input-with-icon input {
+      background: transparent !important;
+      border: 0 !important;
+    }
+
+    body.analyze-page .input-group input:focus {
+      border-color: var(--cyan) !important;
+      box-shadow: 0 0 0 3px rgba(54,217,255,.08) !important;
+    }
+
+    body.analyze-page input::placeholder {
+      color: #657b91;
+    }
+
+    body.analyze-page .field-hint {
+      color: #71869d;
+      font-size: .68rem;
+      line-height: 1.6;
+    }
+
+    body.analyze-page .preset-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 22px 0 11px;
+      color: #a9bdcf;
+      font-size: .65rem;
+      font-weight: 800;
+      letter-spacing: .7px;
+    }
+
+    body.analyze-page .preset-heading span {
+      color: #71869d;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    body.analyze-page .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    body.analyze-page .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 10px 13px;
+      color: var(--cyan-soft) !important;
+      background: rgba(54,217,255,.05) !important;
+      border: 1px solid rgba(54,217,255,.24) !important;
+      border-radius: 8px !important;
+      font-size: .72rem;
+      font-weight: 750;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    body.analyze-page .btn:hover {
+      background: rgba(54,217,255,.12) !important;
+      border-color: rgba(54,217,255,.5) !important;
+    }
+
+    body.analyze-page .btn-safe {
+      color: var(--green) !important;
+      background: rgba(72,214,160,.05) !important;
+      border-color: rgba(72,214,160,.25) !important;
+    }
+
+    body.analyze-page .btn-fraud {
+      color: #ff8799 !important;
+      background: rgba(255,82,109,.05) !important;
+      border-color: rgba(255,82,109,.25) !important;
+    }
+
+    body.analyze-page .btn-run {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      width: 100%;
+      min-height: 48px;
+      padding: 13px 16px;
+      color: #03111a !important;
+      background: linear-gradient(105deg, #36d9ff, #71e6ff) !important;
+      border: 1px solid var(--cyan) !important;
+      border-radius: 9px !important;
+      font-size: .78rem;
+      font-weight: 850;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    body.analyze-page .btn-run:hover {
+      box-shadow: 0 8px 25px rgba(54,217,255,.16);
+      transform: translateY(-1px);
+    }
+
+    body.analyze-page .btn-run:disabled {
+      opacity: .65;
+      cursor: wait;
+      transform: none;
+    }
+
+    body.analyze-page .button-arrow {
+      font-size: 1.1rem;
+    }
+
+    body.analyze-page .form-footnote {
+      margin: 12px 0 0;
+      color: #71869d;
+      font-size: .68rem;
+      line-height: 1.6;
+    }
+
+    /* Prediction result */
+
+    body.analyze-page .result-card {
+      display: block;
+      margin-top: 19px;
+      border-color: rgba(132,157,183,.19) !important;
+    }
+
+    body.analyze-page .result-topline {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 15px;
+      color: #91a7bc;
+      font-size: .64rem;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+    }
+
+    body.analyze-page .result-indicator {
+      width: 7px;
+      height: 7px;
+      background: var(--cyan);
+      border-radius: 50%;
+    }
+
+    body.analyze-page .result-card h2 {
+      margin: 0 0 9px;
+      color: #e7f0fa;
+      font-size: 1.17rem;
+      line-height: 1.45;
+    }
+
+    body.analyze-page .result-card > p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .8rem;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .result-card.safe {
+      border-color: rgba(72,214,160,.35) !important;
+    }
+
+    body.analyze-page .result-card.safe .result-indicator {
+      background: var(--green);
+    }
+
+    body.analyze-page .result-card.safe h2 {
+      color: var(--green);
+    }
+
+    body.analyze-page .result-card.fraud,
+    body.analyze-page .result-card.error {
+      border-color: rgba(255,82,109,.4) !important;
+    }
+
+    body.analyze-page .result-card.fraud .result-indicator,
+    body.analyze-page .result-card.error .result-indicator {
+      background: var(--red);
+    }
+
+    body.analyze-page .result-card.fraud h2,
+    body.analyze-page .result-card.error h2 {
+      color: #ff8295;
+    }
+
+    /* Explainability */
+
+    body.analyze-page .explain-panel {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(132,157,183,.14);
+    }
+
+    body.analyze-page .explain-panel h3 {
+      margin: 0 0 12px;
+      color: #dceaf6;
+      font-size: .94rem;
+    }
+
+    body.analyze-page .explain-summary {
+      margin-bottom: 16px;
+      color: #a8bacb;
+      font-size: .79rem;
+      line-height: 1.75;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .shap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    body.analyze-page .shap-row {
+      display: grid;
+      grid-template-columns: minmax(90px, .75fr) minmax(70px, 1fr);
+      gap: 8px 12px;
+      align-items: center;
+    }
+
+    body.analyze-page .shap-feature {
+      color: #c9d8e6;
+      font-size: .74rem;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .shap-bar {
+      height: 8px;
+      overflow: hidden;
+      background: #1a2a3d;
+      border-radius: 20px;
+    }
+
+    body.analyze-page .shap-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width .3s ease;
+    }
+
+    body.analyze-page .shap-fill.positive {
+      background: linear-gradient(90deg, #ff526d, #ff9b79);
+    }
+
+    body.analyze-page .shap-fill.negative {
+      background: linear-gradient(90deg, #36d9ff, #48d6a0);
+    }
+
+    body.analyze-page .shap-impact {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: .66rem;
+    }
+
+    body.analyze-page .shap-impact.positive {
+      color: #ff8295;
+    }
+
+    body.analyze-page .shap-impact.negative {
+      color: var(--green);
+    }
+
+    body.analyze-page .recommendation {
+      margin-top: 18px;
+      padding: 15px;
+      background: rgba(54,217,255,.045);
+      border: 1px solid rgba(54,217,255,.16);
+      border-radius: 10px;
+    }
+
+    body.analyze-page .recommendation strong {
+      color: var(--cyan-soft);
+      font-size: .77rem;
+    }
+
+    body.analyze-page .recommendation p {
+      margin: 7px 0 0;
+      color: #b6c7d7;
+      font-size: .77rem;
+      line-height: 1.7;
+    }
+
+    body.analyze-page .explain-note {
+      margin-top: 15px !important;
+      color: #71869d !important;
+      font-size: .68rem !important;
+      line-height: 1.7;
+    }
+
+    /* Fraud intelligence */
+
+    body.analyze-page .rag-panel {
+      margin-top: 18px;
+      padding: 16px;
+      background: rgba(4,12,22,.65);
+      border: 1px solid rgba(54,217,255,.15);
+      border-radius: 11px;
+    }
+
+    body.analyze-page .rag-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #dceaf6;
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    body.analyze-page .rag-symbol {
+      color: var(--cyan);
+      font-size: 1.1rem;
+    }
+
+    body.analyze-page .rag-badge {
+      padding: 5px 7px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.06);
+      border: 1px solid rgba(54,217,255,.15);
+      border-radius: 5px;
+      font-size: .55rem;
+      letter-spacing: .4px;
+    }
+
+    body.analyze-page .rag-description,
+    body.analyze-page .rag-note {
+      margin: 11px 0;
+      color: var(--muted);
+      font-size: .7rem;
+      line-height: 1.7;
+    }
+
+    body.analyze-page .rag-results {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    body.analyze-page .rag-item {
+      padding: 12px;
+      background: rgba(11,20,34,.8);
+      border: 1px solid rgba(132,157,183,.13);
+      border-radius: 8px;
+    }
+
+    body.analyze-page .rag-source {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: var(--cyan-soft);
+      font-size: .7rem;
+      font-weight: 750;
+    }
+
+    body.analyze-page .rag-score {
+      color: var(--green);
+      font-size: .66rem;
+    }
+
+    body.analyze-page .rag-text {
+      color: #aabccd;
+      font-size: .75rem;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .rag-note strong {
+      color: #b6d9e9;
+    }
+
+    /* Batch CSV */
+
+    body.analyze-page .batch-card {
+      margin-top: 24px;
+    }
+
+    body.analyze-page .batch-header {
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    body.analyze-page .batch-tag {
+      flex-shrink: 0;
+      padding: 7px 9px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.05);
+      border: 1px solid rgba(54,217,255,.18);
+      border-radius: 7px;
+      font-size: .59rem;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+    body.analyze-page .csv-requirements {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 17px;
+      padding: 13px;
+      background: rgba(54,217,255,.035);
+      border: 1px solid rgba(54,217,255,.12);
+      border-radius: 9px;
+    }
+
+    body.analyze-page .requirement-icon {
+      color: var(--cyan);
+      font-size: 1rem;
+    }
+
+    body.analyze-page .csv-requirements div {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    body.analyze-page .csv-requirements strong {
+      color: #d5e5f2;
+      font-size: .73rem;
+    }
+
+    body.analyze-page .csv-requirements code {
+      color: #8edff1;
+      font-size: .68rem;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    body.analyze-page .drop-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 180px;
+      padding: 22px;
+      background: rgba(4,12,22,.58);
+      border: 1px dashed rgba(54,217,255,.36);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+
+    body.analyze-page .drop-zone:hover,
+    body.analyze-page .drop-zone.drag-over {
+      background: rgba(54,217,255,.055);
+      border-color: var(--cyan);
+    }
+
+    body.analyze-page .drop-zone input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+    }
+
+    body.analyze-page .upload-icon {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.08);
+      border: 1px solid rgba(54,217,255,.18);
+      border-radius: 12px;
+      font-size: 1.35rem;
+    }
+
+    body.analyze-page .drop-zone strong {
+      color: #dceaf6;
+      font-size: .83rem;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .drop-zone small {
+      color: var(--muted);
+      font-size: .68rem;
+      line-height: 1.6;
+    }
+
+    body.analyze-page .browse-file {
+      padding: 7px 11px;
+      color: var(--cyan);
+      background: rgba(54,217,255,.06);
+      border: 1px solid rgba(54,217,255,.2);
+      border-radius: 7px;
+      font-size: .7rem;
+      font-weight: 750;
+    }
+
+    body.analyze-page .file-selected {
+      color: var(--green) !important;
+    }
+
+    body.analyze-page .batch-run {
+      margin-top: 15px;
+    }
+
+    body.analyze-page .batch-summary {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    body.analyze-page .sum-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 15px;
+      background: rgba(4,12,22,.65);
+      border: 1px solid rgba(132,157,183,.15);
+      border-radius: 10px;
+    }
+
+    body.analyze-page .sum-box span {
+      color: var(--muted);
+      font-size: .68rem;
+    }
+
+    body.analyze-page .sum-box strong {
+      color: var(--cyan);
+      font-size: 1.55rem;
+    }
+
+    body.analyze-page .safe-summary strong {
+      color: var(--green);
+    }
+
+    body.analyze-page .fraud-summary strong {
+      color: var(--red);
+    }
+
+    body.analyze-page .batch-table-wrapper {
+      display: none;
+      width: 100%;
+      margin-top: 20px;
+      overflow-x: auto;
+      border: 1px solid rgba(132,157,183,.14);
+      border-radius: 10px;
+    }
+
+    body.analyze-page .batch-table {
+      width: 100%;
+      min-width: 540px;
+      border-collapse: collapse;
+    }
+
+    body.analyze-page .batch-table th {
+      padding: 13px;
+      color: #91a8bd;
+      background: rgba(54,217,255,.045);
+      border-bottom: 1px solid rgba(132,157,183,.15);
+      text-align: left;
+      font-size: .67rem;
+      font-weight: 800;
+    }
+
+    body.analyze-page .batch-table td {
+      padding: 13px;
+      color: #c7d7e6;
+      border-bottom: 1px solid rgba(132,157,183,.1);
+      font-size: .74rem;
+      overflow-wrap: anywhere;
+    }
+
+    body.analyze-page .batch-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    body.analyze-page .table-badge {
+      display: inline-block;
+      padding: 6px 8px;
+      border: 1px solid;
+      border-radius: 6px;
+      font-size: .67rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    body.analyze-page .badge-safe {
+      color: var(--green);
+      background: rgba(72,214,160,.06);
+      border-color: rgba(72,214,160,.22);
+    }
+
+    body.analyze-page .badge-fraud {
+      color: #ff8295;
+      background: rgba(255,82,109,.06);
+      border-color: rgba(255,82,109,.24);
+    }
+
+    body.analyze-page .page-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 25px;
+      padding: 17px 0 5px;
+      color: #71869d;
+      border-top: 1px solid rgba(132,157,183,.12);
+      font-size: .68rem;
+      line-height: 1.7;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 1120px) {
+      body.analyze-page .sidebar {
+        flex-basis: 220px;
+        width: 220px !important;
+      }
+
+      body.analyze-page .main-content {
+        width: calc(100% - 220px);
+        padding: 27px 22px;
+      }
+
+      body.analyze-page .workspace-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.analyze-page .visual-column {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+
+      body.analyze-page .visual-column > .section-kicker {
+        grid-column: 1 / -1;
+      }
+
+      body.analyze-page .credit-card {
+        grid-row: span 2;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body.analyze-page {
+        display: block !important;
+      }
+
+      body.analyze-page .sidebar {
+        position: relative !important;
+        width: 100% !important;
+        height: auto;
+        min-height: 0;
+        padding: 16px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--border) !important;
+      }
+
+      body.analyze-page .brand {
+        margin-bottom: 5px;
+      }
+
+      body.analyze-page .nav-section-title {
+        margin-top: 9px;
+      }
+
+      body.analyze-page .sidebar-status {
+        margin-top: 10px;
+      }
+
+      body.analyze-page .main-content {
+        width: 100%;
+        padding: 23px 16px;
+      }
+
+      body.analyze-page .analyze-header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      body.analyze-page .visual-column {
+        display: flex;
+      }
+
+      body.analyze-page .credit-card {
+        min-height: 215px;
+      }
+
+      body.analyze-page .batch-header {
+        flex-wrap: wrap;
+      }
+
+      body.analyze-page .batch-tag {
+        margin-left: 52px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body.analyze-page .main-content {
+        padding: 19px 11px;
+      }
+
+      body.analyze-page .page-title {
+        font-size: 1.8rem;
+      }
+
+      body.analyze-page .header-status {
+        font-size: .59rem;
+      }
+
+      body.analyze-page .form-card,
+      body.analyze-page .result-card,
+      body.analyze-page .batch-card {
+        padding: 16px;
+      }
+
+      body.analyze-page .input-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      body.analyze-page .input-group.full {
+        grid-column: auto;
+      }
+
+      body.analyze-page .btn-row {
+        flex-direction: column;
+      }
+
+      body.analyze-page .btn-row .btn {
+        width: 100%;
+      }
+
+      body.analyze-page .batch-summary {
+        grid-template-columns: 1fr;
+      }
+
+      body.analyze-page .sum-box {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      body.analyze-page .shap-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      body.analyze-page .shap-impact {
+        grid-column: auto;
+      }
+
+      body.analyze-page .page-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body class="analyze-page">
+
+  <aside class="sidebar">
+    <a class="brand" href="/dashboard">💳 SwipeShield</a>
+
+    <div class="nav-section-title">Core Platform</div>
+    <a href="/dashboard" class="nav-link">📊 Dashboard</a>
+    <a href="/predict_page" class="nav-link active">🔍 Analyze Fraud</a>
+    <a href="/logs_page" class="nav-link">📜 Audit Logs</a>
+
+    <div class="nav-section-title">AI Metrics &amp; Security</div>
+    <a href="/alerts_page" class="nav-link">🚨 Threat Alerts</a>
+    <a href="/model_health" class="nav-link">🧠 Model Health</a>
+    <a href="/map_page" class="nav-link">🌍 Global Threat Map</a>
+
+    <div class="nav-section-title">System &amp; Admin</div>
+    <a href="/profile" class="nav-link">👤 Security Profile</a>
+    <a href="/logout" class="nav-link logout">↪ Logout</a>
+
+    <div class="sidebar-status">
+      <span class="pulse-dot"></span>
+      <span>
+        <strong>Security system</strong>
+        <small>Interface ready</small>
+      </span>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="analyze-header">
+      <div>
+        <div class="eyebrow">
+          <span class="pulse-dot"></span>
+          TRANSACTION SECURITY CENTER
+        </div>
+        <h1 class="page-title">Analyze Transaction</h1>
+        <p class="page-subtitle">
+          Evaluate transaction risk with your machine-learning fraud detection model.
+        </p>
+      </div>
+      <div class="header-status"><span>●</span> ANALYSIS WORKSPACE</div>
+    </header>
+
+    <section class="workspace-grid">
+
+      <!-- Payment card and workflow -->
+      <div class="visual-column">
+        <div class="section-kicker">
+          PAYMENT PREVIEW <span>01 / TRANSACTION</span>
+        </div>
+
+        <div class="credit-card" id="cardVisual">
+          <div class="card-glow"></div>
+
+          <div class="card-top">
+            <div class="chip">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="card-vendor">VISA</div>
+          </div>
+
+          <div class="card-middle">
+            <div class="card-label">PAYMENT CARD</div>
+            <div class="card-number" id="cardNumPreview">4532 •••• •••• 8892</div>
+          </div>
+
+          <div class="card-bottom">
+            <div>
+              <div class="card-label">CARD HOLDER</div>
+              <div class="card-val" id="cardHolderPreview">AUTHORIZED USER</div>
+            </div>
+            <div class="card-expiry">
+              <div class="card-label">EXPIRES</div>
+              <div class="card-val">12/28</div>
+            </div>
+          </div>
+
+          <div class="card-watermark">SWIPE<span>SHIELD</span></div>
+        </div>
+
+        <div class="info-panel">
+          <div class="info-icon">✳</div>
+          <div>
+            <h3>Intelligent risk analysis</h3>
+            <p>Review the model's risk score and available explanations before taking action.</p>
+          </div>
+        </div>
+
+        <div class="workflow-panel">
+          <div class="workflow-heading">ANALYSIS WORKFLOW</div>
+
+          <div class="workflow-step">
+            <span class="step-number">01</span>
+            <div>
+              <strong>Transaction inputs</strong>
+              <small>Enter card and model parameters</small>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <span class="step-number">02</span>
+            <div>
+              <strong>ML risk assessment</strong>
+              <small>Send data to the prediction endpoint</small>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <span class="step-number">03</span>
+            <div>
+              <strong>Review the outcome</strong>
+              <small>Inspect score and explanations</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prediction form and results -->
+      <div class="form-column">
+
+        <section class="form-card">
+          <div class="panel-heading">
+            <div class="panel-icon">⌁</div>
+            <div>
+              <div class="section-kicker">MODEL INPUT</div>
+              <h2>Transaction Parameters</h2>
+              <p>Provide the transaction details below.</p>
+            </div>
+          </div>
+
+          <form id="predictForm">
+            <div class="input-grid">
+
+              <div class="input-group full">
+                <label for="cardNumber">Card Number</label>
+                <div class="input-with-icon">
+                  <span>▤</span>
+                  <input
+                    type="text"
+                    id="cardNumber"
+                    name="card_number"
+                    value="4532 1122 3344 8892"
+                    maxlength="19"
+                    autocomplete="off"
+                    inputmode="numeric"
+                    required
+                    oninput="updateCardPreview(this.value)"
+                  >
+                </div>
+                <small class="field-hint">The card number is used for transaction logging.</small>
+              </div>
+
+              <div class="input-group">
+                <label for="amount">Transaction Amount ($)</label>
+                <div class="input-with-icon">
+                  <span>$</span>
+                  <input type="number" id="amount" name="amount"
+                         value="45.50" min="0" step="any" required>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="v1">V1 Parameter</label>
+                <input type="number" id="v1" name="v1" value="-0.42" step="any" required>
+              </div>
+
+              <div class="input-group">
+                <label for="v2">V2 Parameter</label>
+                <input type="number" id="v2" name="v2" value="0.15" step="any" required>
+              </div>
+
+              <div class="input-group">
+                <label for="v3">V3 Parameter</label>
+                <input type="number" id="v3" name="v3" value="1.20" step="any" required>
+              </div>
+
+              <div class="input-group">
+                <label for="v4">V4 Parameter</label>
+                <input type="number" id="v4" name="v4" value="0.30" step="any" required>
+              </div>
+
+              <div class="input-group">
+                <label for="v14">V14 Parameter</label>
+                <input type="number" id="v14" name="v14" value="0.25" step="any" required>
+              </div>
+            </div>
+
+            <div class="preset-heading">
+              QUICK TEST SAMPLES <span>Optional</span>
+            </div>
+
+            <div class="btn-row">
+              <button type="button" class="btn btn-safe" onclick="loadSafePreset()">
+                ✓ Fill Safe Sample
+              </button>
+              <button type="button" class="btn btn-fraud" onclick="loadFraudPreset()">
+                ! Fill Fraud Sample
+              </button>
+            </div>
+
+            <button type="submit" class="btn-run" id="predictButton">
+              <span>Run Machine Learning Prediction</span>
+              <span class="button-arrow">→</span>
+            </button>
+
+            <p class="form-footnote">
+              The prediction will be processed by the configured SwipeShield model.
+            </p>
+          </form>
+        </section>
+
+        <section id="resultCard" class="result-card" aria-live="polite">
+          <div class="result-topline">
+            <span class="result-indicator"></span> PREDICTION RESULT
+          </div>
+
+          <h2 id="resultTitle">Awaiting prediction</h2>
+          <p id="resultScore">Fraud Probability Score: --%</p>
+
+          <div id="explainPanel" class="explain-panel" style="display:none">
+            <h3>🧠 Why did the model make this decision?</h3>
+            <div id="explainSummary" class="explain-summary">--</div>
+            <div id="shapList" class="shap-list"></div>
+
+            <div class="recommendation">
+              <strong>Recommended Action</strong>
+              <p id="recommendationText">--</p>
+            </div>
+
+            <div id="ragPanel" class="rag-panel" style="display:none">
+              <div class="rag-header">
+                <div><span class="rag-symbol">⌕</span> Fraud Intelligence</div>
+                <span class="rag-badge">LOCAL KNOWLEDGE BASE</span>
+              </div>
+
+              <p class="rag-description">
+                Relevant fraud and security knowledge retrieved from the local SwipeShield knowledge base.
+              </p>
+
+              <div id="ragResults" class="rag-results"></div>
+
+              <div class="rag-note">
+                Retrieved using <strong>TF-IDF + Cosine Similarity</strong>.
+                Results depend on the configured local knowledge base.
+              </div>
+            </div>
+
+            <p class="explain-note">
+              SHAP explanations describe feature contributions. Retrieved knowledge provides
+              context and does not change the classifier's prediction.
+            </p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Batch CSV analysis -->
+    <section class="batch-card">
+      <div class="batch-header">
+        <div class="batch-icon">⇧</div>
+        <div>
+          <div class="section-kicker">BATCH ANALYSIS</div>
+          <h2>Bulk CSV Scanner</h2>
+          <p>Upload a CSV file to analyze multiple transactions in one run.</p>
+        </div>
+        <div class="batch-tag">CSV PROCESSING</div>
+      </div>
+
+      <div class="csv-requirements">
+        <span class="requirement-icon">ⓘ</span>
+        <div>
+          <strong>Required CSV headers</strong>
+          <code>card_number, amount, v1, v2, v3, v4, v14</code>
+        </div>
+      </div>
+
+      <form id="batchForm">
+        <label class="drop-zone" for="csvFile">
+          <input
+            type="file"
+            id="csvFile"
+            name="file"
+            accept=".csv,text/csv"
+            required
+            onchange="handleFileSelect(this)"
+          >
+          <span class="upload-icon">⇧</span>
+          <strong id="fileName">Choose a CSV file or drag it here</strong>
+          <small>CSV format only · Ensure all required columns are present</small>
+          <span class="browse-file">Browse files</span>
+        </label>
+
+        <button type="submit" class="btn-run batch-run" id="batchButton">
+          <span>Execute Batch Processing</span>
+          <span class="button-arrow">→</span>
+        </button>
+      </form>
+
+      <div id="batchSummary" class="batch-summary">
+        <div class="sum-box">
+          <span>Total Scanned</span>
+          <strong id="sumTotal">0</strong>
+        </div>
+        <div class="sum-box safe-summary">
+          <span>Legitimate</span>
+          <strong id="sumSafe">0</strong>
+        </div>
+        <div class="sum-box fraud-summary">
+          <span>Fraud Flagged</span>
+          <strong id="sumFraud">0</strong>
+        </div>
+      </div>
+
+      <div id="batchTableWrapper" class="batch-table-wrapper">
+        <table class="batch-table">
+          <thead>
+            <tr>
+              <th>Card Number</th>
+              <th>Amount ($)</th>
+              <th>Prediction</th>
+              <th>Risk Score</th>
+            </tr>
+          </thead>
+          <tbody id="batchTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>💳 SwipeShield</span>
+      <span>Transaction Risk Analysis · Verify outcomes before taking action</span>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    // Card preview: only display the first and last four digits.
+    function updateCardPreview(value) {
+      const clean = String(value || "").replace(/\s+/g, "");
+      const preview = document.getElementById("cardNumPreview");
+
+      if (clean.length < 4) {
+        preview.textContent = "•••• •••• •••• ••••";
+        return;
+      }
+
+      preview.textContent =
+        `${clean.substring(0, 4)} •••• •••• ${clean.substring(clean.length - 4)}`;
+    }
+
+    function loadSafePreset() {
+      document.getElementById("amount").value = "45.50";
+      document.getElementById("v1").value = "-0.42";
+      document.getElementById("v2").value = "0.15";
+      document.getElementById("v3").value = "1.20";
+      document.getElementById("v4").value = "0.30";
+      document.getElementById("v14").value = "0.25";
+    }
+
+    function loadFraudPreset() {
+      document.getElementById("amount").value = "2500.00";
+      document.getElementById("v1").value = "-3.04";
+      document.getElementById("v2").value = "2.58";
+      document.getElementById("v3").value = "-5.56";
+      document.getElementById("v4").value = "4.28";
+      document.getElementById("v14").value = "-9.61";
+    }
+
+    function escapeHtml(value) {
+      const element = document.createElement("div");
+      element.textContent = String(value ?? "");
+      return element.innerHTML;
+    }
+
+    function setBusy(button, busy, busyText, normalText) {
+      button.disabled = busy;
+      button.classList.toggle("is-loading", busy);
+      button.querySelector("span").textContent = busy ? busyText : normalText;
+    }
+
+    // Single transaction prediction.
+    // Preserves the Flask POST /predict JSON contract.
+    document.getElementById("predictForm").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const button = document.getElementById("predictButton");
+      const resultCard = document.getElementById("resultCard");
+      const resultTitle = document.getElementById("resultTitle");
+      const resultScore = document.getElementById("resultScore");
+      const cardVisual = document.getElementById("cardVisual");
+
+      const amount = Number(document.getElementById("amount").value);
+      if (!Number.isFinite(amount) || amount < 0) {
+        resultCard.className = "result-card error";
+        resultTitle.textContent = "Invalid transaction amount";
+        resultScore.textContent = "Enter a valid non-negative amount and try again.";
+        return;
+      }
+
+      const payload = {
+        card_number: document.getElementById("cardNumber").value,
+        amount: document.getElementById("amount").value,
+        v1: document.getElementById("v1").value,
+        v2: document.getElementById("v2").value,
+        v3: document.getElementById("v3").value,
+        v4: document.getElementById("v4").value,
+        v14: document.getElementById("v14").value
+      };
+
+      resultCard.style.display = "block";
+      resultCard.className = "result-card";
+      resultTitle.textContent = "Analyzing transaction…";
+      resultScore.textContent = "Waiting for the model response.";
+      document.getElementById("explainPanel").style.display = "none";
+      document.getElementById("ragPanel").style.display = "none";
+      cardVisual.classList.remove("card-safe", "card-fraud");
+
+      setBusy(
+        button,
+        true,
+        "Analyzing transaction…",
+        "Run Machine Learning Prediction"
+      );
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.status === "error" || !("prediction" in data)) {
+          throw new Error(data.message || "Prediction could not be completed.");
+        }
+
+        const isFraud = data.prediction === "Fraudulent";
+        const risk = Number(data.risk_score);
+
+        resultCard.classList.add(isFraud ? "fraud" : "safe");
+        resultTitle.textContent = isFraud
+          ? "Potential Fraud Detected"
+          : "Transaction Classified as Legitimate";
+
+        resultScore.textContent =
+          `Fraud Probability Score: ${Number.isFinite(risk) ? risk : "--"}%`;
+
+        cardVisual.classList.add(isFraud ? "card-fraud" : "card-safe");
+
+        const explanation = data.explanation;
+        const explainPanel = document.getElementById("explainPanel");
+        const shapList = document.getElementById("shapList");
+
+        shapList.innerHTML = "";
+
+        if (Array.isArray(explanation) && explanation.length > 0) {
+          explainPanel.style.display = "block";
+
+          document.getElementById("explainSummary").textContent =
+            data.ai_summary || "The model explanation is available below.";
+
+          document.getElementById("recommendationText").textContent =
+            data.recommended_action ||
+            "Review the transaction using your security controls.";
+
+          const maxImpact = Math.max(
+            ...explanation.map(item => Math.abs(Number(item.contribution) || 0)),
+            0.000001
+          );
+
+          shapList.innerHTML = explanation.map(item => {
+            const contribution = Number(item.contribution) || 0;
+            const positive = contribution > 0;
+            const width = Math.max(
+              8,
+              Math.min(100, Math.abs(contribution) / maxImpact * 100)
+            );
+            const directionClass = positive ? "positive" : "negative";
+            const directionText = positive ? "Increased risk" : "Reduced risk";
+
+            return `
+              <div class="shap-row">
+                <div class="shap-feature">${escapeHtml(item.feature)}</div>
+                <div class="shap-bar">
+                  <div class="shap-fill ${directionClass}" style="width:${width}%"></div>
+                </div>
+                <div class="shap-impact ${directionClass}">
+                  ${positive ? "↑" : "↓"} ${directionText}
+                </div>
+              </div>`;
+          }).join("");
+        } else {
+          explainPanel.style.display = "none";
+        }
+
+        const ragPanel = document.getElementById("ragPanel");
+        const ragResults = document.getElementById("ragResults");
+        const ragData = data.fraud_intelligence;
+
+        ragResults.innerHTML = "";
+
+        if (ragData && Array.isArray(ragData.results) && ragData.results.length > 0) {
+          ragPanel.style.display = "block";
+
+          ragResults.innerHTML = ragData.results.map(item => `
+            <div class="rag-item">
+              <div class="rag-source">
+                <span>📄 ${escapeHtml(item.source)}</span>
+                <span class="rag-score">
+                  Relevance ${Number(item.relevance || 0).toFixed(3)}
+                </span>
+              </div>
+              <div class="rag-text">${escapeHtml(item.text)}</div>
+            </div>
+          `).join("");
+        } else {
+          ragPanel.style.display = "none";
+        }
+
+      } catch (error) {
+        console.error("Prediction error:", error);
+        resultCard.className = "result-card error";
+        resultTitle.textContent = "Prediction Unavailable";
+        resultScore.textContent =
+          error.message || "Please check the Flask server and try again.";
+      } finally {
+        setBusy(
+          button,
+          false,
+          "Analyzing transaction…",
+          "Run Machine Learning Prediction"
+        );
+      }
+    });
+
+    // CSV file selection feedback.
+    function handleFileSelect(input) {
+      const fileName = document.getElementById("fileName");
+
+      if (input.files && input.files[0]) {
+        fileName.textContent = "Selected: " + input.files[0].name;
+        fileName.classList.add("file-selected");
+      } else {
+        fileName.textContent = "Choose a CSV file or drag it here";
+        fileName.classList.remove("file-selected");
+      }
+    }
+
+    // Drag and drop support.
+    const dropZone = document.querySelector(".drop-zone");
+
+    ["dragenter", "dragover"].forEach(type => {
+      dropZone.addEventListener(type, event => {
+        event.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(type => {
+      dropZone.addEventListener(type, event => {
+        event.preventDefault();
+        dropZone.classList.remove("drag-over");
+      });
+    });
+
+    dropZone.addEventListener("drop", event => {
+      const files = event.dataTransfer.files;
+
+      if (files.length && /\.csv$/i.test(files[0].name)) {
+        const input = document.getElementById("csvFile");
+
+        try {
+          const transfer = new DataTransfer();
+          transfer.items.add(files[0]);
+          input.files = transfer.files;
+          handleFileSelect(input);
+        } catch (error) {
+          console.warn("Could not assign dropped file automatically.", error);
+        }
+      }
+    });
+
+    // Batch prediction. Preserves POST /predict_batch and form field "file".
+    document.getElementById("batchForm").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const fileInput = document.getElementById("csvFile");
+      const button = document.getElementById("batchButton");
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        alert("Please select a CSV file first.");
+        return;
+      }
+
+      if (!/\.csv$/i.test(fileInput.files[0].name)) {
+        alert("Please select a valid CSV file.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      setBusy(
+        button,
+        true,
+        "Processing CSV…",
+        "Execute Batch Processing"
+      );
+
+      try {
+        const response = await fetch("/predict_batch", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.status !== "success") {
+          throw new Error(data.message || "Batch processing failed.");
+        }
+
+        document.getElementById("batchSummary").style.display = "grid";
+        document.getElementById("batchTableWrapper").style.display = "block";
+
+        document.getElementById("sumTotal").textContent = data.total ?? 0;
+        document.getElementById("sumSafe").textContent = data.safe_count ?? 0;
+        document.getElementById("sumFraud").textContent = data.fraud_count ?? 0;
+
+        document.getElementById("batchTableBody").innerHTML =
+          (data.results || []).map(row => {
+            const isFraud = row.prediction === "Fraudulent";
+            const amount = Number.parseFloat(row.amount);
+            const risk = Number(row.risk);
+
+            return `
+              <tr>
+                <td class="card-cell">${escapeHtml(row.card)}</td>
+                <td class="amount-cell">
+                  $${Number.isFinite(amount) ? amount.toFixed(2) : "—"}
+                </td>
+                <td>
+                  <span class="table-badge ${isFraud ? "badge-fraud" : "badge-safe"}">
+                    ${isFraud ? "⚠ Fraudulent" : "✓ Legitimate"}
+                  </span>
+                </td>
+                <td class="risk-cell">
+                  ${Number.isFinite(risk) ? escapeHtml(risk) + "%" : "—"}
+                </td>
+              </tr>`;
+          }).join("");
+
+      } catch (error) {
+        console.error("Batch processing error:", error);
+        alert(
+          error.message ||
+          "Unable to process the CSV file. Please check the Flask server."
+        );
+      } finally {
+        setBusy(
+          button,
+          false,
+          "Processing CSV…",
+          "Execute Batch Processing"
+        );
+      }
+    });
+
+    // Initial card preview.
+    updateCardPreview(document.getElementById("cardNumber").value);
+  </script>
+</body>
+</html>

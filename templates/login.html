@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050914">
+  <meta name="description" content="SwipeShield — Credit Card Fraud Intelligence and Secure Authentication">
+  <title>SwipeShield | Secure Authentication</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-page">
+
+  <!-- Ambient background -->
+  <div class="ambient-glow ambient-glow-left" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-glow-right" aria-hidden="true"></div>
+  <div class="ambient-grid" aria-hidden="true"></div>
+
+  <!-- Security status ticker -->
+  <header class="alert-ticker-container">
+    <div class="ticker-brand">
+      <span class="ticker-brand-icon" aria-hidden="true">⬡</span>
+      <span>SWIPESHIELD</span>
+      <span class="ticker-brand-divider"></span>
+      <span class="ticker-brand-caption">SECURITY OPERATIONS</span>
+    </div>
+
+    <div class="ticker-window" aria-label="Security status information">
+      <div class="alert-ticker-track">
+        <div class="ticker-item">
+          <span class="ticker-indicator indicator-green"></span>
+          <span class="ticker-label">SYSTEM</span>
+          Secure authentication interface
+        </div>
+
+        <div class="ticker-item">
+          <span class="ticker-indicator indicator-cyan"></span>
+          <span class="ticker-label">AI ENGINE</span>
+          Fraud intelligence ready
+        </div>
+
+        <div class="ticker-item">
+          <span class="ticker-indicator indicator-red"></span>
+          <span class="ticker-label">MONITORING</span>
+          Transaction risk analysis
+        </div>
+
+        <div class="ticker-item">
+          <span class="ticker-indicator indicator-green"></span>
+          <span class="ticker-label">SECURITY</span>
+          Protected portal access
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker-live">
+      <span class="pulse-dot"></span>
+      <span>PORTAL ACTIVE</span>
+    </div>
+  </header>
+
+  <main class="login-main">
+
+    <!-- Page introduction -->
+    <section class="login-intro">
+      <div class="intro-eyebrow">
+        <span class="intro-eyebrow-line"></span>
+        INTELLIGENCE. SECURITY. TRUST.
+      </div>
+
+      <h2>
+        Stay ahead of
+        <span>every threat.</span>
+      </h2>
+
+      <p>
+        Intelligent fraud detection starts with secure access.
+        Enter your credentials to open your workspace.
+      </p>
+    </section>
+
+    <div class="portal-wrapper">
+
+      <!-- Left security overview -->
+      <aside class="side-widget-left">
+        <div class="widget-topline">
+          <div class="widget-title">Security overview</div>
+          <span class="widget-index">01 / SEC</span>
+        </div>
+
+        <div class="security-visual">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+
+          <div class="shield-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 6L51 16V32C51 44 43 53 32 58C21 53 13 44 13 32V16L32 6Z"
+                    stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M23 32L29 38L41 25"
+                    stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="visual-brand">SWIPESHIELD</div>
+          <div class="visual-description">AI-powered fraud intelligence</div>
+          <div class="visual-chip">
+            <span class="pulse-dot"></span>
+            Secure environment
+          </div>
+        </div>
+
+        <div class="security-status">
+          <div class="status-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3L20 6V11C20 16 16.5 19.5 12 21C7.5 19.5 4 16 4 11V6L12 3Z"
+                    stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              <path d="M8.5 12L11 14.5L15.5 10"
+                    stroke="currentColor" stroke-width="1.7"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div>
+            <strong>Protected access</strong>
+            <span>Authentication gateway</span>
+          </div>
+
+          <span class="status-check" aria-label="Status indicator">✓</span>
+        </div>
+
+        <div class="side-divider"></div>
+
+        <div class="security-footnote">
+          <span class="footnote-icon">⌁</span>
+          <span>Your workspace. Your security. One intelligent portal.</span>
+        </div>
+      </aside>
+
+      <!-- Main authentication card -->
+      <section class="login-card" aria-labelledby="loginTitle">
+
+        <div class="login-card-top">
+          <span class="secure-label">
+            <span class="pulse-dot"></span>
+            SECURE AUTHENTICATION
+          </span>
+          <span class="login-card-code">SS / AUTH-01</span>
+        </div>
+
+        <div class="brand-title">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 6L51 16V32C51 44 43 53 32 58C21 53 13 44 13 32V16L32 6Z"
+                    stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M24 32H40M32 24V40"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <h1 id="loginTitle">SwipeShield<span class="brand-period">.</span></h1>
+          <p>Credit Card Fraud Intelligence System</p>
+        </div>
+
+        <div class="form-heading">Welcome back</div>
+        <p class="form-description">
+          Sign in to access your fraud monitoring workspace.
+        </p>
+
+        <div id="errorBox" class="error-box" role="alert" aria-live="polite"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username / Email</label>
+
+            <div class="input-shell">
+              <span class="input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M4 20C4.5 16.5 7.5 14 12 14C16.5 14 19.5 16.5 20 20"
+                        stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Enter your username"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="password">Password</label>
+              <span class="field-security">
+                <span class="mini-lock" aria-hidden="true">●</span>
+                ENCRYPTED ACCESS
+              </span>
+            </div>
+
+            <div class="input-shell">
+              <span class="input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="10" width="16" height="11" rx="2"
+                        stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10"
+                        stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <circle cx="12" cy="15" r="1.2" fill="currentColor"/>
+                  <path d="M12 16V18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              >
+
+              <button
+                type="button"
+                class="password-toggle"
+                id="passwordToggle"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                <svg class="eye-open" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M2.5 12S6 5.5 12 5.5S21.5 12 21.5 12S18 18.5 12 18.5S2.5 12 2.5 12Z"
+                        stroke="currentColor" stroke-width="1.7"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login">
+            <span class="btn-login-text">Authenticate &amp; Launch Portal</span>
+            <span class="btn-login-arrow" aria-hidden="true">↗</span>
+          </button>
+
+          <div class="form-security-note">
+            <span class="security-note-icon" aria-hidden="true">◇</span>
+            Your credentials are used to authenticate your session.
+          </div>
+
+          <div class="form-separator">
+            <span></span>
+            <small>NEW TO SWIPESHIELD?</small>
+            <span></span>
+          </div>
+
+          <a href="/signup" class="btn-signup">
+            <span>Create Security Account</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </form>
+
+        <div class="card-footer">
+          <span class="footer-mark" aria-hidden="true">⬡</span>
+          <span>SwipeShield</span>
+          <span class="footer-divider">/</span>
+          <span>Fraud Detection &amp; Risk Intelligence</span>
+        </div>
+      </section>
+
+      <!-- Right threat intelligence panel -->
+      <aside class="side-widget-right">
+        <div class="widget-topline">
+          <div class="widget-title">Threat intelligence</div>
+          <span class="widget-index">02 / INTEL</span>
+        </div>
+
+        <div class="threat-summary">
+          <div class="threat-summary-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 18V12M10 18V6M16 18V9M22 18V3"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div>
+            <span class="threat-summary-label">ANALYTICS ENGINE</span>
+            <strong>Fraud intelligence</strong>
+          </div>
+        </div>
+
+        <div class="threat-list">
+          <div class="threat-item">
+            <div class="threat-item-icon threat-icon-red" aria-hidden="true">!</div>
+            <div class="threat-item-copy">
+              <span>Fraud analysis</span>
+              <small>Risk evaluation</small>
+            </div>
+            <span class="threat-tag tag-blocked">MONITOR</span>
+          </div>
+
+          <div class="threat-item">
+            <div class="threat-item-icon threat-icon-green" aria-hidden="true">✓</div>
+            <div class="threat-item-copy">
+              <span>Model monitoring</span>
+              <small>Detection pipeline</small>
+            </div>
+            <span class="threat-tag tag-shield">READY</span>
+          </div>
+
+          <div class="threat-item">
+            <div class="threat-item-icon threat-icon-cyan" aria-hidden="true">≡</div>
+            <div class="threat-item-copy">
+              <span>Audit records</span>
+              <small>Activity tracking</small>
+            </div>
+            <span class="threat-tag tag-shield">TRACKED</span>
+          </div>
+        </div>
+
+        <div class="intel-bottom">
+          <div class="intel-bottom-line"></div>
+          <span>INTELLIGENCE AT EVERY TRANSACTION</span>
+        </div>
+      </aside>
+
+    </div>
+
+    <footer class="page-footer">
+      <span>© SwipeShield</span>
+      <span class="page-footer-dot">•</span>
+      <span>Fraud Detection &amp; Risk Intelligence</span>
+      <span class="page-footer-spacer"></span>
+      <span class="page-footer-status">
+        <span class="pulse-dot"></span>
+        SECURE PORTAL
+      </span>
+    </footer>
+  </main>
+
+  <script>
+    // Preserve the existing Flask login API contract.
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const errorBox = document.getElementById('errorBox');
+    const passwordToggle = document.getElementById('passwordToggle');
+
+    passwordToggle.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+
+      passwordInput.type = isPassword ? 'text' : 'password';
+      passwordToggle.setAttribute('aria-pressed', String(isPassword));
+      passwordToggle.setAttribute(
+        'aria-label',
+        isPassword ? 'Hide password' : 'Show password'
+      );
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      const submitButton = loginForm.querySelector('button[type="submit"]');
+      const buttonText = submitButton.querySelector('.btn-login-text');
+      const originalText = 'Authenticate & Launch Portal';
+
+      errorBox.style.display = 'none';
+      errorBox.textContent = '';
+
+      if (!username || !password) {
+        errorBox.textContent = 'Please enter your username and password.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.classList.add('is-loading');
+      buttonText.textContent = 'Authenticating securely...';
+
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        });
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error('The server returned an unexpected response.');
+        }
+
+        if (response.ok && data.status === 'success') {
+          window.location.href = data.redirect || '/dashboard';
+          return;
+        }
+
+        errorBox.textContent =
+          data.message || 'Invalid username or password. Please try again.';
+        errorBox.style.display = 'block';
+
+      } catch (error) {
+        console.error('Login error:', error);
+
+        errorBox.textContent =
+          'Unable to connect to SwipeShield. Please check that the application is running.';
+        errorBox.style.display = 'block';
+
+      } finally {
+        submitButton.disabled = false;
+        submitButton.classList.remove('is-loading');
+        buttonText.textContent = originalText;
+      }
+    });
+  </script>
+
+</body>
+</html>

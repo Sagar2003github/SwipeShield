@@ -1,0 +1,5 @@
+Feature context — anonymized PCA variables: V1, V2, V3, V4, and V14 are anonymized transformed variables from the credit-card fraud dataset. Their numeric names do not directly correspond to human-readable business attributes such as merchant, country, or device type.
+
+Feature context — Amount: Amount is the transaction monetary value supplied to the model. Its contribution should be interpreted from the trained model and the specific transaction rather than assuming that a large amount is automatically fraudulent.
+
+Feature context — model-specific interpretation: Because the transformed V-features are anonymized, an investigation interface should describe their model contribution rather than inventing a business meaning for an individual V-feature.
