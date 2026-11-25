@@ -2,600 +2,721 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SwipeShield | Security Command Center</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    :root {
-      --bg: #050a12;
-      --panel: #0b1422;
-      --border: rgba(54, 217, 255, .18);
-      --cyan: #36d9ff;
-      --text: #e7f0fa;
-      --muted: #8394aa;
-      --red: #ff526d;
-      --green: #48d6a0;
-      --amber: #ffb547;
-      --purple: #b69cff;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .2;
-      background-image:
-        linear-gradient(rgba(54,217,255,.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(54,217,255,.035) 1px, transparent 1px);
-      background-size: 42px 42px;
-    }
-
-    a, button, input, select { font: inherit; }
-
-    .sidebar {
-      position: relative;
-      z-index: 2;
-      flex: 0 0 250px;
-      min-height: 100vh;
-      background: #070e18;
-      border-right: 1px solid var(--border);
-      padding: 28px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .brand {
-      color: var(--cyan);
-      font-size: 1.5rem;
-      font-weight: 800;
-      margin-bottom: 16px;
-      letter-spacing: -.5px;
-    }
-
-    .nav-section-title {
-      color: var(--muted);
-      font-size: .68rem;
-      font-weight: 800;
-      letter-spacing: 1.4px;
-      margin-top: 14px;
-      margin-bottom: 3px;
-    }
-
-    .nav-link {
-      color: #a3b2c5;
-      text-decoration: none;
-      font-size: .9rem;
-      font-weight: 600;
-      padding: 11px 12px;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: .2s ease;
-    }
-
-    .nav-link:hover, .nav-link.active {
-      color: var(--cyan);
-      background: rgba(54,217,255,.07);
-      border-color: var(--border);
-    }
-
-    .nav-link.network-link { color: #a5dfff; }
-    .nav-link.logout { color: var(--red); margin-top: auto; }
-
-    .main-content {
-      position: relative;
-      z-index: 1;
-      flex: 1;
-      min-width: 0;
-      padding: 32px;
-      max-width: 1600px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-    }
-
-    .page-title h1 {
-      font-size: clamp(1.4rem, 2.4vw, 2rem);
-      letter-spacing: -.5px;
-    }
-
-    .page-title p {
-      color: var(--muted);
-      font-size: .9rem;
-      margin-top: 6px;
-    }
-
-    .page-title strong { color: var(--cyan); }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      border: 1px solid rgba(72,214,160,.25);
-      color: var(--green);
-      background: rgba(72,214,160,.06);
-      padding: 9px 13px;
-      border-radius: 8px;
-      font-size: .82rem;
-      font-weight: 700;
-    }
-
-    .pulse-dot {
-      width: 7px;
-      height: 7px;
-      background: var(--green);
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(72,214,160,.5);
-      animation: pulse 1.7s infinite;
-    }
-
-    @keyframes pulse { 50% { opacity: .45; } }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    .stat-card, .chart-card, .action-card, .network-card {
-      background: rgba(10,19,32,.94);
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 21px;
-      box-shadow: 0 12px 32px rgba(0,0,0,.2);
-      min-width: 0;
-      transition: border-color .2s ease;
-    }
-
-    .stat-card:hover, .chart-card:hover, .action-card:hover,
-    .network-card:hover, .monitor-card:hover {
-      border-color: rgba(54,217,255,.4);
-    }
-
-    .stat-card h3 {
-      color: var(--muted);
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .stat-card .value {
-      color: var(--cyan);
-      font-size: clamp(1.35rem, 2vw, 1.8rem);
-      font-weight: 800;
-      margin: 13px 0 5px;
-      overflow-wrap: anywhere;
-    }
-
-    .stat-card .subtext { color: var(--muted); font-size: .79rem; }
-
-    .middle-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .chart-card, .action-card { padding: 22px; }
-
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .chart-header h3, .action-card h3, .network-card h3,
-    .monitor-card h3 {
-      font-size: 1rem;
-      color: var(--text);
-    }
-
-    .chart-label { color: var(--cyan); font-size: .76rem; }
-
-    .chart-container {
-      position: relative;
-      width: 100%;
-      height: 300px;
-    }
-
-    .action-card p, .network-card p {
-      color: var(--muted);
-      font-size: .86rem;
-      line-height: 1.7;
-      margin: 12px 0 20px;
-    }
-
-    .btn-action, .btn-secondary, .btn-small {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      text-decoration: none;
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: .86rem;
-      cursor: pointer;
-      transition: .2s ease;
-    }
-
-    .btn-action {
-      background: var(--cyan);
-      color: #03111a;
-      border: 1px solid var(--cyan);
-    }
-
-    .btn-action:hover { background: #9beeff; transform: translateY(-1px); }
-
-    .action-card > .btn-action { display: flex; width: 100%; }
-
-    .btn-secondary {
-      color: var(--cyan);
-      background: rgba(54,217,255,.06);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover { background: rgba(54,217,255,.13); }
-
-    .btn-small { padding: 9px 12px; border: 1px solid var(--border); }
-
-    .btn-small:disabled { opacity: .5; cursor: not-allowed; }
-
-    .info-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 22px;
-    }
-
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      font-size: .82rem;
-    }
-
-    .info-item span:first-child { color: var(--muted); }
-
-    .info-item span:last-child {
-      color: var(--cyan);
-      text-align: right;
-      font-weight: 600;
-    }
-
-    /* Model performance monitoring */
-    .monitor-section { margin-top: 24px; }
-
-    .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    .section-heading h2 { font-size: 1.25rem; }
-
-    .section-heading p {
-      color: var(--muted);
-      font-size: .85rem;
-      line-height: 1.6;
-      margin-top: 7px;
-      max-width: 760px;
-    }
-
-    .monitor-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 9px;
-    }
-
-    .monitor-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
-    .monitor-card {
-      min-width: 0;
-      background: rgba(10,19,32,.94);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      transition: border-color .2s ease;
-    }
-
-    .monitor-card .metric-label {
-      color: var(--muted);
-      font-size: .74rem;
-      letter-spacing: .8px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .monitor-card .metric-value {
-      font-size: clamp(1.45rem, 2.5vw, 2rem);
-      font-weight: 800;
-      color: var(--cyan);
-      margin: 12px 0 6px;
-      overflow-wrap: anywhere;
-    }
-
-    .metric-note { color: var(--muted); font-size: .76rem; line-height: 1.5; }
-
-    .monitor-two-col {
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .monitor-panel {
-      background: rgba(10,19,32,.94);
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 21px;
-      min-width: 0;
-    }
-
-    .panel-description {
-      color: var(--muted);
-      font-size: .81rem;
-      line-height: 1.6;
-      margin-top: 8px;
-      margin-bottom: 17px;
-    }
-
-    .monitor-chart { height: 265px; position: relative; }
-
-    .api-status {
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(54,217,255,.04);
-      color: var(--muted);
-      font-size: .83rem;
-      line-height: 1.6;
-      margin-bottom: 16px;
-      overflow-wrap: anywhere;
-    }
-
-    .api-status.success {
-      color: var(--green);
-      border-color: rgba(72,214,160,.3);
-      background: rgba(72,214,160,.06);
-    }
-
-    .api-status.warning {
-      color: var(--amber);
-      border-color: rgba(255,181,71,.3);
-      background: rgba(255,181,71,.06);
-    }
-
-    .api-status.error {
-      color: #ff8d9f;
-      border-color: rgba(255,82,109,.3);
-      background: rgba(255,82,109,.06);
-    }
-
-    .matrix-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .matrix-cell {
-      border: 1px solid rgba(255,255,255,.07);
-      background: rgba(255,255,255,.02);
-      border-radius: 9px;
-      padding: 14px;
-    }
-
-    .matrix-cell span { display: block; color: var(--muted); font-size: .76rem; }
-    .matrix-cell strong { display: block; margin-top: 7px; font-size: 1.35rem; }
-    .matrix-cell.tn strong, .matrix-cell.tp strong { color: var(--green); }
-    .matrix-cell.fp strong, .matrix-cell.fn strong { color: var(--amber); }
-
-    .label-form { display: grid; gap: 13px; margin-top: 16px; }
-
-    .form-field label {
-      display: block;
-      color: var(--muted);
-      font-size: .8rem;
-      margin-bottom: 7px;
-    }
-
-    .form-field input, .form-field select {
-      width: 100%;
-      padding: 11px 12px;
-      background: #060d17;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      outline: none;
-    }
-
-    .form-field input:focus, .form-field select:focus {
-      border-color: var(--cyan);
-    }
-
-    .form-help {
-      color: var(--muted);
-      font-size: .76rem;
-      line-height: 1.6;
-      margin-top: 12px;
-    }
-
-    .table-wrap { overflow-x: auto; margin-top: 16px; }
-
-    .history-table { width: 100%; border-collapse: collapse; min-width: 620px; }
-
-    .history-table th, .history-table td {
-      text-align: left;
-      padding: 12px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-      font-size: .8rem;
-      white-space: nowrap;
-    }
-
-    .history-table th {
-      color: var(--muted);
-      font-size: .7rem;
-      text-transform: uppercase;
-      letter-spacing: .7px;
-    }
-
-    .history-table td { color: var(--text); }
-    .history-table tr:last-child td { border-bottom: 0; }
-
-    .empty-state {
-      color: var(--muted);
-      font-size: .83rem;
-      line-height: 1.6;
-      padding: 18px 0 5px;
-    }
-
-    .network-section { margin-top: 20px; }
-
-    .network-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 24px;
-      background:
-        radial-gradient(circle at 90% 20%, rgba(54,217,255,.09), transparent 38%),
-        rgba(10,19,32,.96);
-    }
-
-    .network-card-content { flex: 1; min-width: 0; }
-
-    .network-eyebrow {
-      color: var(--cyan);
-      text-transform: uppercase;
-      font-size: .7rem;
-      letter-spacing: 1.2px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .network-card h3 { font-size: 1.15rem; }
-    .network-card p { max-width: 650px; margin-bottom: 0; }
-
-    .network-icon {
-      flex: 0 0 76px;
-      width: 76px;
-      height: 76px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 18px;
-      color: var(--cyan);
-      background: rgba(54,217,255,.08);
-      border: 1px solid var(--border);
-      font-size: 2.2rem;
-    }
-
-    .network-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-      flex: 0 0 205px;
-    }
-
-    .network-actions .btn-action, .network-actions .btn-secondary { width: 100%; }
-
-    .footer-note { color: var(--muted); font-size: .74rem; margin-top: 22px; }
-
-    @media (max-width: 1100px) {
-      .sidebar { flex-basis: 215px; }
-      .main-content { padding: 24px; }
-      .stats-grid, .monitor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .middle-grid, .monitor-two-col { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 650px) {
-      body { display: block; }
-
-      .sidebar {
-        width: 100%;
-        min-height: auto;
-        padding: 15px;
-        gap: 7px;
-      }
-
-      .brand { margin-bottom: 5px; }
-      .nav-section-title { margin-top: 8px; }
-      .nav-link { padding: 9px; }
-      .main-content { padding: 18px 13px; }
-      .stats-grid, .monitor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-      .stat-card, .monitor-card { padding: 15px; }
-      .chart-container { height: 240px; }
-      .monitor-chart { height: 235px; }
-
-      .network-card { flex-direction: column; align-items: flex-start; }
-      .network-icon { order: -1; }
-      .network-actions { width: 100%; flex: auto; }
-      .monitor-actions { width: 100%; }
-      .monitor-actions button { flex: 1; }
-    }
-
-    @media (max-width: 380px) {
-      .stats-grid, .monitor-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwipeShield | Security Command Center</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg: #050a12;
+            --panel: #0b1422;
+            --border: rgba(54, 217, 255, .18);
+            --cyan: #36d9ff;
+            --text: #e7f0fa;
+            --muted: #8394aa;
+            --red: #ff526d;
+            --green: #48d6a0;
+            --amber: #ffb547;
+            --purple: #b69cff;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .2;
+            background-image:
+                linear-gradient(rgba(54,217,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(54,217,255,.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+        }
+
+        a, button, input, select {
+            font: inherit;
+        }
+
+        .sidebar {
+            position: relative;
+            z-index: 2;
+            flex: 0 0 250px;
+            min-height: 100vh;
+            background: #070e18;
+            border-right: 1px solid var(--border);
+            padding: 28px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .brand {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -.5px;
+        }
+
+        .nav-section-title {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            margin-top: 14px;
+            margin-bottom: 3px;
+        }
+
+        .nav-link {
+            color: #a3b2c5;
+            text-decoration: none;
+            font-size: .9rem;
+            font-weight: 600;
+            padding: 11px 12px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: .2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--cyan);
+            background: rgba(54,217,255,.07);
+            border-color: var(--border);
+        }
+
+        .nav-link.network-link { color: #a5dfff; }
+        .nav-link.logout { color: var(--red); margin-top: auto; }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            min-width: 0;
+            padding: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .page-title h1 {
+            font-size: clamp(1.4rem, 2.4vw, 2rem);
+            letter-spacing: -.5px;
+        }
+
+        .page-title p {
+            color: var(--muted);
+            font-size: .9rem;
+            margin-top: 6px;
+        }
+
+        .page-title strong { color: var(--cyan); }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid rgba(72,214,160,.25);
+            color: var(--green);
+            background: rgba(72,214,160,.06);
+            padding: 9px 13px;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(72,214,160,.5);
+            animation: pulse 1.7s infinite;
+        }
+
+        @keyframes pulse {
+            50% { opacity: .45; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card, .chart-card, .action-card, .network-card {
+            background: rgba(10,19,32,.94);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 21px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.2);
+            min-width: 0;
+            transition: border-color .2s ease;
+        }
+
+        .stat-card:hover, .chart-card:hover, .action-card:hover,
+        .network-card:hover, .monitor-card:hover {
+            border-color: rgba(54,217,255,.4);
+        }
+
+        .stat-card h3 {
+            color: var(--muted);
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            color: var(--cyan);
+            font-size: clamp(1.35rem, 2vw, 1.8rem);
+            font-weight: 800;
+            margin: 13px 0 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-card .subtext {
+            color: var(--muted);
+            font-size: .79rem;
+        }
+
+        .middle-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .chart-card, .action-card { padding: 22px; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3, .action-card h3, .network-card h3,
+        .monitor-card h3 {
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .chart-label {
+            color: var(--cyan);
+            font-size: .76rem;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .action-card p, .network-card p {
+            color: var(--muted);
+            font-size: .86rem;
+            line-height: 1.7;
+            margin: 12px 0 20px;
+        }
+
+        .btn-action, .btn-secondary, .btn-small {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: .86rem;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .btn-action {
+            background: var(--cyan);
+            color: #03111a;
+            border: 1px solid var(--cyan);
+        }
+
+        .btn-action:hover {
+            background: #9beeff;
+            transform: translateY(-1px);
+        }
+
+        .action-card > .btn-action {
+            display: flex;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            color: var(--cyan);
+            background: rgba(54,217,255,.06);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(54,217,255,.13);
+        }
+
+        .btn-small {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-small:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            font-size: .82rem;
+        }
+
+        .info-item span:first-child { color: var(--muted); }
+
+        .info-item span:last-child {
+            color: var(--cyan);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        /* MODEL PERFORMANCE MONITORING */
+
+        .monitor-section { margin-top: 24px; }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .section-heading h2 { font-size: 1.25rem; }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.6;
+            margin-top: 7px;
+            max-width: 760px;
+        }
+
+        .monitor-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .monitor-card {
+            min-width: 0;
+            background: rgba(10,19,32,.94);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: border-color .2s ease;
+        }
+
+        .monitor-card .metric-label {
+            color: var(--muted);
+            font-size: .74rem;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .monitor-card .metric-value {
+            font-size: clamp(1.45rem, 2.5vw, 2rem);
+            font-weight: 800;
+            color: var(--cyan);
+            margin: 12px 0 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .metric-note {
+            color: var(--muted);
+            font-size: .76rem;
+            line-height: 1.5;
+        }
+
+        .monitor-two-col {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .monitor-panel {
+            background: rgba(10,19,32,.94);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 21px;
+            min-width: 0;
+        }
+
+        .panel-description {
+            color: var(--muted);
+            font-size: .81rem;
+            line-height: 1.6;
+            margin-top: 8px;
+            margin-bottom: 17px;
+        }
+
+        .monitor-chart {
+            height: 265px;
+            position: relative;
+        }
+
+        /* NEON PERFORMANCE HISTORY DESIGN */
+
+        .monitor-panel:has(#performanceHistoryChart) {
+            border-color: rgba(54,217,255,.28);
+            background:
+                radial-gradient(
+                    circle at 50% 0%,
+                    rgba(54,217,255,.075),
+                    transparent 65%
+                ),
+                rgba(10,19,32,.96);
+            box-shadow:
+                0 0 15px rgba(54,217,255,.055),
+                0 12px 32px rgba(0,0,0,.2);
+            transition: .25s ease;
+        }
+
+        .monitor-panel:has(#performanceHistoryChart):hover {
+            border-color: rgba(54,217,255,.5);
+            box-shadow:
+                0 0 18px rgba(54,217,255,.1),
+                0 0 35px rgba(54,217,255,.045),
+                0 12px 32px rgba(0,0,0,.2);
+        }
+
+        #performanceHistoryChart {
+            filter:
+                drop-shadow(0 0 5px rgba(54,217,255,.15))
+                drop-shadow(0 0 12px rgba(54,217,255,.08));
+        }
+
+        .api-status {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(54,217,255,.04);
+            color: var(--muted);
+            font-size: .83rem;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            overflow-wrap: anywhere;
+        }
+
+        .api-status.success {
+            color: var(--green);
+            border-color: rgba(72,214,160,.3);
+            background: rgba(72,214,160,.06);
+        }
+
+        .api-status.warning {
+            color: var(--amber);
+            border-color: rgba(255,181,71,.3);
+            background: rgba(255,181,71,.06);
+        }
+
+        .api-status.error {
+            color: #ff8d9f;
+            border-color: rgba(255,82,109,.3);
+            background: rgba(255,82,109,.06);
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .matrix-cell {
+            border: 1px solid rgba(255,255,255,.07);
+            background: rgba(255,255,255,.02);
+            border-radius: 9px;
+            padding: 14px;
+        }
+
+        .matrix-cell span {
+            display: block;
+            color: var(--muted);
+            font-size: .76rem;
+        }
+
+        .matrix-cell strong {
+            display: block;
+            margin-top: 7px;
+            font-size: 1.35rem;
+        }
+
+        .matrix-cell.tn strong,
+        .matrix-cell.tp strong { color: var(--green); }
+
+        .matrix-cell.fp strong,
+        .matrix-cell.fn strong { color: var(--amber); }
+
+        .label-form {
+            display: grid;
+            gap: 13px;
+            margin-top: 16px;
+        }
+
+        .form-field label {
+            display: block;
+            color: var(--muted);
+            font-size: .8rem;
+            margin-bottom: 7px;
+        }
+
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 11px 12px;
+            background: #060d17;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            border-color: var(--cyan);
+        }
+
+        .form-help {
+            color: var(--muted);
+            font-size: .76rem;
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 620px;
+        }
+
+        .history-table th,
+        .history-table td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            font-size: .8rem;
+            white-space: nowrap;
+        }
+
+        .history-table th {
+            color: var(--muted);
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        .history-table td { color: var(--text); }
+        .history-table tr:last-child td { border-bottom: 0; }
+
+        .empty-state {
+            color: var(--muted);
+            font-size: .83rem;
+            line-height: 1.6;
+            padding: 18px 0 5px;
+        }
+
+        .network-section { margin-top: 20px; }
+
+        .network-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            background:
+                radial-gradient(circle at 90% 20%, rgba(54,217,255,.09), transparent 38%),
+                rgba(10,19,32,.96);
+        }
+
+        .network-card-content { flex: 1; min-width: 0; }
+
+        .network-eyebrow {
+            color: var(--cyan);
+            text-transform: uppercase;
+            font-size: .7rem;
+            letter-spacing: 1.2px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .network-card h3 { font-size: 1.15rem; }
+
+        .network-card p {
+            max-width: 650px;
+            margin-bottom: 0;
+        }
+
+        .network-icon {
+            flex: 0 0 76px;
+            width: 76px;
+            height: 76px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 18px;
+            color: var(--cyan);
+            background: rgba(54,217,255,.08);
+            border: 1px solid var(--border);
+            font-size: 2.2rem;
+        }
+
+        .network-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            flex: 0 0 205px;
+        }
+
+        .network-actions .btn-action,
+        .network-actions .btn-secondary {
+            width: 100%;
+        }
+
+        .footer-note {
+            color: var(--muted);
+            font-size: .74rem;
+            margin-top: 22px;
+        }
+
+        @media (max-width: 1100px) {
+            .sidebar { flex-basis: 215px; }
+
+            .main-content { padding: 24px; }
+
+            .stats-grid, .monitor-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .middle-grid, .monitor-two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            body { display: block; }
+
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                padding: 15px;
+                gap: 7px;
+            }
+
+            .brand { margin-bottom: 5px; }
+            .nav-section-title { margin-top: 8px; }
+            .nav-link { padding: 9px; }
+
+            .main-content { padding: 18px 13px; }
+
+            .stats-grid, .monitor-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .stat-card, .monitor-card { padding: 15px; }
+            .chart-container { height: 240px; }
+            .monitor-chart { height: 235px; }
+
+            .network-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .network-icon { order: -1; }
+            .network-actions { width: 100%; flex: auto; }
+            .monitor-actions { width: 100%; }
+            .monitor-actions button { flex: 1; }
+        }
+
+        @media (max-width: 380px) {
+            .stats-grid, .monitor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
     <div class="brand">⬡ SwipeShield</div>
 
     <div class="nav-section-title">CORE PLATFORM</div>
@@ -613,633 +734,1019 @@
     <div class="nav-section-title">SYSTEM & ADMIN</div>
     <a href="/profile" class="nav-link">◉ Security Profile</a>
     <a href="/logout" class="nav-link logout">↪ Logout</a>
-  </aside>
+</aside>
 
-  <!-- MAIN DASHBOARD -->
-  <main class="main-content">
+<!-- MAIN DASHBOARD -->
+<main class="main-content">
+
     <div class="header-row">
-      <div class="page-title">
-        <h1>Security Command Center</h1>
-        <p>Active Security User: <strong>{{ username }}</strong></p>
-      </div>
+        <div class="page-title">
+            <h1>Security Command Center</h1>
+            <p>Active Security User: <strong>{{ username }}</strong></p>
+        </div>
 
-      <div class="status-badge">
-        <span class="pulse-dot"></span>
-        Application Connected
-      </div>
+        <div class="status-badge">
+            <span class="pulse-dot"></span>
+            Application Connected
+        </div>
     </div>
 
     <!-- SYSTEM OVERVIEW -->
     <section class="stats-grid" aria-label="System overview">
-      <div class="stat-card">
-        <h3>Test Dataset Accuracy</h3>
-        <div class="value" id="testAccuracy">N/A</div>
-        <div class="subtext">Loaded from model metrics API</div>
-      </div>
 
-      <div class="stat-card">
-        <h3>Primary Algorithm</h3>
-        <div class="value" id="primaryAlgorithm" style="font-size:1.35rem">
-          Random Forest
+        <div class="stat-card">
+            <h3>Test Dataset Accuracy</h3>
+            <div class="value" id="testAccuracy">N/A</div>
+            <div class="subtext">Loaded from model metrics API</div>
         </div>
-        <div class="subtext">Configured model classifier</div>
-      </div>
 
-      <div class="stat-card">
-        <h3>Verified Transactions</h3>
-        <div class="value" id="overviewVerifiedCount">0</div>
-        <div class="subtext">Outcomes confirmed by review</div>
-      </div>
+        <div class="stat-card">
+            <h3>Primary Algorithm</h3>
+            <div class="value" id="primaryAlgorithm" style="font-size:1.35rem">
+                Random Forest
+            </div>
+            <div class="subtext">Configured model classifier</div>
+        </div>
 
-      <div class="stat-card">
-        <h3>Database Engine</h3>
-        <div class="value">SQLite3</div>
-        <div class="subtext">Application records and audit logs</div>
-      </div>
+        <div class="stat-card">
+            <h3>Verified Transactions</h3>
+            <div class="value" id="overviewVerifiedCount">0</div>
+            <div class="subtext">Outcomes confirmed by review</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Database Engine</h3>
+            <div class="value">SQLite3</div>
+            <div class="subtext">Application records and audit logs</div>
+        </div>
+
     </section>
 
     <!-- FRAUD RISK CHART AND QUICK ANALYSIS -->
     <section class="middle-grid">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>Fraud Risk Activity</h3>
-          <span class="chart-label">Analytics API</span>
-        </div>
-        <div class="chart-container">
-          <canvas id="fraudTrendChart" aria-label="Fraud risk score trend"></canvas>
-        </div>
-      </div>
 
-      <div class="action-card">
-        <h3>Quick Fraud Analysis</h3>
-        <p>
-          Analyze a transaction using the existing fraud detection model
-          and selected transaction features.
-        </p>
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Fraud Risk Activity</h3>
+                <span class="chart-label">Analytics API</span>
+            </div>
 
-        <a href="/predict_page" class="btn-action">Run New Analysis →</a>
-
-        <div class="info-list">
-          <div class="info-item">
-            <span>Target variable</span>
-            <span>Class (0 / 1)</span>
-          </div>
-          <div class="info-item">
-            <span>Selected features</span>
-            <span>V1, V2, V3, V4, V14</span>
-          </div>
-          <div class="info-item">
-            <span>Additional input</span>
-            <span>Amount</span>
-          </div>
+            <div class="chart-container">
+                <canvas id="fraudTrendChart"
+                        aria-label="Fraud risk score trend"></canvas>
+            </div>
         </div>
-      </div>
+
+        <div class="action-card">
+            <h3>Quick Fraud Analysis</h3>
+
+            <p>
+                Analyze a transaction using the existing fraud detection model
+                and selected transaction features.
+            </p>
+
+            <a href="/predict_page" class="btn-action">
+                Run New Analysis →
+            </a>
+
+            <div class="info-list">
+
+                <div class="info-item">
+                    <span>Target variable</span>
+                    <span>Class (0 / 1)</span>
+                </div>
+
+                <div class="info-item">
+                    <span>Selected features</span>
+                    <span>V1, V2, V3, V4, V14</span>
+                </div>
+
+                <div class="info-item">
+                    <span>Additional input</span>
+                    <span>Amount</span>
+                </div>
+
+            </div>
+        </div>
+
     </section>
 
     <!-- MODEL PERFORMANCE MONITORING -->
     <section class="monitor-section" id="model-performance">
-      <div class="section-heading">
-        <div>
-          <h2>Model Performance Monitoring</h2>
-          <p>
-            Track prediction quality against reviewed transaction outcomes.
-            Only transactions with a verified actual class are included in these
-            metrics. Unlabelled predictions are excluded.
-          </p>
+
+        <div class="section-heading">
+
+            <div>
+                <h2>Model Performance Monitoring</h2>
+
+                <p>
+                    Track prediction quality against reviewed transaction outcomes.
+                    Only transactions with a verified actual class are included
+                    in these metrics. Unlabelled predictions are excluded.
+                </p>
+            </div>
+
+            <div class="monitor-actions">
+
+                <button class="btn-secondary btn-small"
+                        id="refreshMonitoring"
+                        type="button">
+                    ↻ Refresh Metrics
+                </button>
+
+                <button class="btn-secondary btn-small"
+                        id="refreshHistory"
+                        type="button">
+                    ↻ Refresh History
+                </button>
+
+            </div>
         </div>
 
-        <div class="monitor-actions">
-          <button class="btn-secondary btn-small" id="refreshMonitoring" type="button">
-            ↻ Refresh Metrics
-          </button>
-          <button class="btn-secondary btn-small" id="refreshHistory" type="button">
-            ↻ Refresh History
-          </button>
-        </div>
-      </div>
-
-      <div id="monitorStatus" class="api-status" role="status" aria-live="polite">
-        Loading verified performance metrics…
-      </div>
-
-      <div class="monitor-grid">
-        <div class="monitor-card">
-          <div class="metric-label">Accuracy</div>
-          <div class="metric-value" id="perfAccuracy">N/A</div>
-          <div class="metric-note">Overall correct predictions</div>
+        <div id="monitorStatus"
+             class="api-status"
+             role="status"
+             aria-live="polite">
+            Loading verified performance metrics…
         </div>
 
-        <div class="monitor-card">
-          <div class="metric-label">Precision</div>
-          <div class="metric-value" id="perfPrecision">N/A</div>
-          <div class="metric-note">Predicted fraud cases that were actually fraud</div>
+        <!-- PERFORMANCE METRIC CARDS -->
+        <div class="monitor-grid">
+
+            <div class="monitor-card">
+                <div class="metric-label">Accuracy</div>
+                <div class="metric-value" id="perfAccuracy">N/A</div>
+                <div class="metric-note">Overall correct predictions</div>
+            </div>
+
+            <div class="monitor-card">
+                <div class="metric-label">Precision</div>
+                <div class="metric-value" id="perfPrecision">N/A</div>
+                <div class="metric-note">
+                    Predicted fraud cases that were actually fraud
+                </div>
+            </div>
+
+            <div class="monitor-card">
+                <div class="metric-label">Recall</div>
+                <div class="metric-value" id="perfRecall">N/A</div>
+                <div class="metric-note">
+                    Actual fraud cases detected by the system
+                </div>
+            </div>
+
+            <div class="monitor-card">
+                <div class="metric-label">F1-score</div>
+                <div class="metric-value" id="perfF1">N/A</div>
+                <div class="metric-note">
+                    Balance between precision and recall
+                </div>
+            </div>
+
         </div>
 
-        <div class="monitor-card">
-          <div class="metric-label">Recall</div>
-          <div class="metric-value" id="perfRecall">N/A</div>
-          <div class="metric-note">Actual fraud cases detected by the system</div>
+        <!-- PERFORMANCE HISTORY AND CONFUSION MATRIX -->
+        <div class="monitor-two-col">
+
+            <div class="monitor-panel">
+
+                <div class="chart-header">
+                    <h3>Performance History</h3>
+                    <span class="chart-label">Saved snapshots</span>
+                </div>
+
+                <p class="panel-description">
+                    Compare saved metric snapshots over time.
+                    The neon chart displays Accuracy, Precision,
+                    Recall and F1-score from verified transaction outcomes.
+                </p>
+
+                <div class="monitor-chart">
+                    <canvas id="performanceHistoryChart"
+                            aria-label="Verified model performance history"></canvas>
+                </div>
+
+                <p class="form-help" id="historySummary">
+                    Waiting for saved performance history.
+                </p>
+
+            </div>
+
+            <!-- CONFUSION MATRIX -->
+            <div class="monitor-panel">
+
+                <h3>Confusion Matrix</h3>
+
+                <p class="panel-description">
+                    Compares predicted classes with verified actual outcomes.
+                    Fraud is treated as the positive class.
+                </p>
+
+                <div class="matrix-grid">
+
+                    <div class="matrix-cell tn">
+                        <span>True Negative (TN)</span>
+                        <strong id="cmTN">N/A</strong>
+                        <span>Legitimate correctly identified</span>
+                    </div>
+
+                    <div class="matrix-cell fp">
+                        <span>False Positive (FP)</span>
+                        <strong id="cmFP">N/A</strong>
+                        <span>Legitimate flagged as fraud</span>
+                    </div>
+
+                    <div class="matrix-cell fn">
+                        <span>False Negative (FN)</span>
+                        <strong id="cmFN">N/A</strong>
+                        <span>Fraud missed by the model</span>
+                    </div>
+
+                    <div class="matrix-cell tp">
+                        <span>True Positive (TP)</span>
+                        <strong id="cmTP">N/A</strong>
+                        <span>Fraud correctly identified</span>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
 
-        <div class="monitor-card">
-          <div class="metric-label">F1-score</div>
-          <div class="metric-value" id="perfF1">N/A</div>
-          <div class="metric-note">Balance between precision and recall</div>
-        </div>
-      </div>
+        <!-- VERIFIED LABEL ENTRY AND PERFORMANCE INTERPRETATION -->
+        <div class="monitor-two-col">
 
-      <div class="monitor-two-col">
-        <!-- Performance history chart -->
+            <div class="monitor-panel">
+
+                <h3>Verify Transaction Outcome</h3>
+
+                <p class="panel-description">
+                    After reviewing a transaction, record its confirmed outcome.
+                    Saving a label updates performance metrics and records a snapshot.
+                    Use the transaction ID shown in Audit Logs.
+                </p>
+
+                <form class="label-form" id="labelTransactionForm">
+
+                    <div class="form-field">
+                        <label for="transactionId">Transaction ID</label>
+
+                        <input
+                            id="transactionId"
+                            name="transaction_id"
+                            type="number"
+                            min="1"
+                            step="1"
+                            placeholder="e.g. 12"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-field">
+                        <label for="actualClass">Verified Actual Outcome</label>
+
+                        <select id="actualClass"
+                                name="actual_class"
+                                required>
+
+                            <option value="0">Legitimate — 0</option>
+                            <option value="1">Fraud — 1</option>
+
+                        </select>
+                    </div>
+
+                    <button class="btn-action"
+                            id="submitLabel"
+                            type="submit">
+                        Save Verified Outcome
+                    </button>
+
+                </form>
+
+                <p class="form-help">
+                    Important: enter a confirmed outcome, not the model's prediction.
+                    Incorrect labels will make monitoring metrics unreliable.
+                </p>
+
+                <div id="labelStatus"
+                     class="api-status"
+                     role="status"
+                     aria-live="polite"
+                     style="display:none;margin-top:14px;">
+                </div>
+
+            </div>
+
+            <div class="monitor-panel">
+
+                <h3>Performance Interpretation</h3>
+
+                <p class="panel-description">
+                    Use these indicators to assess the model's behaviour.
+                    They are calculated from reviewed outcomes, not
+                    unverified predictions.
+                </p>
+
+                <div class="info-list" style="margin-top:0">
+
+                    <div class="info-item">
+                        <span>Verified sample count</span>
+                        <span id="verifiedCount">0</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Latest snapshot</span>
+                        <span id="latestSnapshot">Not available</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Accuracy change</span>
+                        <span id="accuracyChange">N/A</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Recall change</span>
+                        <span id="recallChange">N/A</span>
+                    </div>
+
+                </div>
+
+                <p class="form-help" id="performanceNote">
+                    Record verified outcomes to start monitoring performance.
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- HISTORY TABLE -->
         <div class="monitor-panel">
-          <div class="chart-header">
-            <h3>Performance History</h3>
-            <span class="chart-label">Saved snapshots</span>
-          </div>
 
-          <p class="panel-description">
-            Compare saved metric snapshots over time. A chart appears after
-            performance snapshots have been recorded.
-          </p>
+            <div class="chart-header">
+                <h3>Recent Performance Snapshots</h3>
+                <span class="chart-label" id="historyCount">0 snapshots</span>
+            </div>
 
-          <div class="monitor-chart">
-            <canvas id="performanceHistoryChart"
-                    aria-label="Verified model performance history"></canvas>
-          </div>
+            <p class="panel-description">
+                Each snapshot records performance metrics at the time
+                a reviewed transaction outcome is saved.
+            </p>
 
-          <p class="form-help" id="historySummary">
-            Waiting for saved performance history.
-          </p>
+            <div class="table-wrap">
+
+                <table class="history-table">
+
+                    <thead>
+                        <tr>
+                            <th>Snapshot ID</th>
+                            <th>Date / Time</th>
+                            <th>Samples</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-score</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                Loading snapshot history…
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
         </div>
 
-        <!-- Confusion matrix -->
-        <div class="monitor-panel">
-          <h3>Confusion Matrix</h3>
-          <p class="panel-description">
-            Compares predicted classes with verified actual outcomes.
-            Fraud is treated as the positive class.
-          </p>
-
-          <div class="matrix-grid">
-            <div class="matrix-cell tn">
-              <span>True Negative (TN)</span>
-              <strong id="cmTN">N/A</strong>
-              <span>Legitimate correctly identified</span>
-            </div>
-
-            <div class="matrix-cell fp">
-              <span>False Positive (FP)</span>
-              <strong id="cmFP">N/A</strong>
-              <span>Legitimate flagged as fraud</span>
-            </div>
-
-            <div class="matrix-cell fn">
-              <span>False Negative (FN)</span>
-              <strong id="cmFN">N/A</strong>
-              <span>Fraud missed by the model</span>
-            </div>
-
-            <div class="matrix-cell tp">
-              <span>True Positive (TP)</span>
-              <strong id="cmTP">N/A</strong>
-              <span>Fraud correctly identified</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Verified label entry -->
-      <div class="monitor-two-col">
-        <div class="monitor-panel">
-          <h3>Verify Transaction Outcome</h3>
-          <p class="panel-description">
-            After reviewing a transaction, record its confirmed outcome.
-            Saving a label updates performance metrics and records a snapshot.
-            Use the transaction ID shown in Audit Logs.
-          </p>
-
-          <form class="label-form" id="labelTransactionForm">
-            <div class="form-field">
-              <label for="transactionId">Transaction ID</label>
-              <input
-                id="transactionId"
-                name="transaction_id"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="e.g. 12"
-                required
-              >
-            </div>
-
-            <div class="form-field">
-              <label for="actualClass">Verified Actual Outcome</label>
-              <select id="actualClass" name="actual_class" required>
-                <option value="0">Legitimate — 0</option>
-                <option value="1">Fraud — 1</option>
-              </select>
-            </div>
-
-            <button class="btn-action" id="submitLabel" type="submit">
-              Save Verified Outcome
-            </button>
-          </form>
-
-          <p class="form-help">
-            Important: enter a confirmed outcome, not the model's prediction.
-            Incorrect labels will make monitoring metrics unreliable.
-          </p>
-
-          <div id="labelStatus" class="api-status" role="status" aria-live="polite" style="display:none;margin-top:14px;"></div>
-        </div>
-
-        <div class="monitor-panel">
-          <h3>Performance Interpretation</h3>
-          <p class="panel-description">
-            Use these indicators to assess the model's behaviour. They are
-            calculated from reviewed outcomes, not unverified predictions.
-          </p>
-
-          <div class="info-list" style="margin-top:0">
-            <div class="info-item">
-              <span>Verified sample count</span>
-              <span id="verifiedCount">0</span>
-            </div>
-
-            <div class="info-item">
-              <span>Latest snapshot</span>
-              <span id="latestSnapshot">Not available</span>
-            </div>
-
-            <div class="info-item">
-              <span>Accuracy change</span>
-              <span id="accuracyChange">N/A</span>
-            </div>
-
-            <div class="info-item">
-              <span>Recall change</span>
-              <span id="recallChange">N/A</span>
-            </div>
-          </div>
-
-          <p class="form-help" id="performanceNote">
-            Record verified outcomes to start monitoring performance.
-          </p>
-        </div>
-      </div>
-
-      <!-- History table -->
-      <div class="monitor-panel">
-        <div class="chart-header">
-          <h3>Recent Performance Snapshots</h3>
-          <span class="chart-label" id="historyCount">0 snapshots</span>
-        </div>
-
-        <p class="panel-description">
-          Each snapshot records performance metrics at the time a reviewed
-          transaction outcome is saved.
-        </p>
-
-        <div class="table-wrap">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Snapshot ID</th>
-                <th>Date / Time</th>
-                <th>Samples</th>
-                <th>Accuracy</th>
-                <th>Precision</th>
-                <th>Recall</th>
-                <th>F1-score</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody">
-              <tr>
-                <td colspan="7" class="empty-state">Loading snapshot history…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </section>
 
     <!-- FRAUD NETWORK -->
     <section class="network-section">
-      <div class="network-card">
-        <div class="network-icon" aria-hidden="true">⌘</div>
 
-        <div class="network-card-content">
-          <div class="network-eyebrow">Network Intelligence</div>
-          <h3>Fraud Network Analysis</h3>
-          <p>
-            Explore connected transactions, identify shared card relationships,
-            inspect potential suspicious clusters, and investigate high-risk
-            transactions using an interactive graph.
-          </p>
+        <div class="network-card">
+
+            <div class="network-icon" aria-hidden="true">⌘</div>
+
+            <div class="network-card-content">
+
+                <div class="network-eyebrow">
+                    Network Intelligence
+                </div>
+
+                <h3>Fraud Network Analysis</h3>
+
+                <p>
+                    Explore connected transactions, identify shared card
+                    relationships, inspect potential suspicious clusters,
+                    and investigate high-risk transactions using an
+                    interactive graph.
+                </p>
+
+            </div>
+
+            <div class="network-actions">
+
+                <a href="/network_page" class="btn-action">
+                    Explore Fraud Network →
+                </a>
+
+                <a href="/api/fraud-network" class="btn-secondary">
+                    View Network API
+                </a>
+
+            </div>
+
         </div>
 
-        <div class="network-actions">
-          <a href="/network_page" class="btn-action">Explore Fraud Network →</a>
-          <a href="/api/fraud-network" class="btn-secondary">View Network API</a>
-        </div>
-      </div>
     </section>
 
     <p class="footer-note">
-      SwipeShield · Fraud Detection & Risk Intelligence
+        SwipeShield · Fraud Detection & Risk Intelligence
     </p>
-  </main>
 
-  <script>
-    "use strict";
+</main>
 
-    let fraudChartInstance = null;
-    let performanceChartInstance = null;
+<script>
+"use strict";
 
-    const $ = (id) => document.getElementById(id);
+let fraudChartInstance = null;
+let performanceChartInstance = null;
 
-    function formatNumber(value) {
-      if (value === null || value === undefined || value === "") return "N/A";
-      const number = Number(value);
-      return Number.isFinite(number) ? number.toLocaleString() : "N/A";
-    }
+const $ = (id) => document.getElementById(id);
 
-    function formatPercent(value) {
-      if (value === null || value === undefined || value === "") return "N/A";
-      const number = Number(value);
-      return Number.isFinite(number) ? number.toFixed(2) + "%" : "N/A";
-    }
-
-    function formatChange(value) {
-      if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+function formatNumber(value) {
+    if (value === null || value === undefined || value === "") {
         return "N/A";
-      }
-
-      const number = Number(value);
-      const sign = number > 0 ? "+" : "";
-      return sign + number.toFixed(2) + " pp";
     }
 
-    function setStatus(elementId, message, type = "") {
-      const element = $(elementId);
-      if (!element) return;
-      element.textContent = message;
-      element.className = "api-status" + (type ? " " + type : "");
+    const number = Number(value);
+
+    return Number.isFinite(number)
+        ? number.toLocaleString()
+        : "N/A";
+}
+
+function formatPercent(value) {
+    if (value === null || value === undefined || value === "") {
+        return "N/A";
     }
 
-    async function fetchJson(url, options = {}) {
-      const response = await fetch(url, {
+    const number = Number(value);
+
+    return Number.isFinite(number)
+        ? number.toFixed(2) + "%"
+        : "N/A";
+}
+
+function formatChange(value) {
+    if (
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+    ) {
+        return "N/A";
+    }
+
+    const number = Number(value);
+    const sign = number > 0 ? "+" : "";
+
+    return sign + number.toFixed(2) + " pp";
+}
+
+function setStatus(elementId, message, type = "") {
+    const element = $(elementId);
+
+    if (!element) return;
+
+    element.textContent = message;
+    element.className = "api-status" + (type ? " " + type : "");
+}
+
+async function fetchJson(url, options = {}) {
+    const response = await fetch(url, {
         cache: "no-store",
         ...options,
         headers: {
-          "Accept": "application/json",
-          ...(options.headers || {})
+            "Accept": "application/json",
+            ...(options.headers || {})
         }
-      });
+    });
 
-      let data;
-      try {
+    let data;
+
+    try {
         data = await response.json();
-      } catch {
+    } catch {
         throw new Error("The server returned an invalid JSON response.");
-      }
+    }
 
-      if (!response.ok || data.status === "error") {
+    if (!response.ok || data.status === "error") {
         throw new Error(
-          data.message || `Request failed with HTTP ${response.status}`
+            data.message || `Request failed with HTTP ${response.status}`
         );
-      }
-
-      return data;
     }
 
-    function updateMetricCard(id, value) {
-      $(id).textContent = formatPercent(value);
-    }
+    return data;
+}
 
-    function setMatrixValues(matrix) {
-      $("cmTN").textContent = formatNumber(matrix?.true_negative);
-      $("cmFP").textContent = formatNumber(matrix?.false_positive);
-      $("cmFN").textContent = formatNumber(matrix?.false_negative);
-      $("cmTP").textContent = formatNumber(matrix?.true_positive);
-    }
+function updateMetricCard(id, value) {
+    $(id).textContent = formatPercent(value);
+}
 
-    function renderPerformanceChart(history) {
-      const canvas = $("performanceHistoryChart");
-      if (!canvas) return;
+function setMatrixValues(matrix) {
+    $("cmTN").textContent = formatNumber(matrix?.true_negative);
+    $("cmFP").textContent = formatNumber(matrix?.false_positive);
+    $("cmFN").textContent = formatNumber(matrix?.false_negative);
+    $("cmTP").textContent = formatNumber(matrix?.true_positive);
+}
 
-      if (performanceChartInstance) {
+// ==========================================
+// NEON PERFORMANCE HISTORY CHART
+// ==========================================
+
+function renderPerformanceChart(history) {
+    const canvas = $("performanceHistoryChart");
+
+    if (!canvas) return;
+
+    if (performanceChartInstance) {
         performanceChartInstance.destroy();
         performanceChartInstance = null;
-      }
-
-      if (!Array.isArray(history) || history.length === 0) {
-        $("historySummary").textContent =
-          "No snapshots are available yet. Save a verified transaction outcome to create the first snapshot.";
-        return;
-      }
-
-      const labels = history.map((item) => {
-        if (item.created_at) {
-          const date = new Date(item.created_at.replace(" ", "T") + "Z");
-          if (!Number.isNaN(date.getTime())) {
-            return date.toLocaleString();
-          }
-        }
-        return "Snapshot " + item.id;
-      });
-
-      const context = canvas.getContext("2d");
-
-      performanceChartInstance = new Chart(context, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Accuracy",
-              data: history.map(item => item.accuracy),
-              borderColor: "#36d9ff",
-              backgroundColor: "rgba(54,217,255,.08)",
-              borderWidth: 2,
-              tension: .3
-            },
-            {
-              label: "Precision",
-              data: history.map(item => item.precision),
-              borderColor: "#b69cff",
-              borderWidth: 2,
-              tension: .3
-            },
-            {
-              label: "Recall",
-              data: history.map(item => item.recall),
-              borderColor: "#48d6a0",
-              borderWidth: 2,
-              tension: .3
-            },
-            {
-              label: "F1-score",
-              data: history.map(item => item.f1_score),
-              borderColor: "#ffb547",
-              borderWidth: 2,
-              tension: .3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          plugins: {
-            legend: {
-              labels: { color: "#a7b7c9", boxWidth: 12 }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: "rgba(255,255,255,.045)" },
-              ticks: {
-                color: "#8394aa",
-                maxTicksLimit: 5,
-                maxRotation: 35
-              }
-            },
-            y: {
-              min: 0,
-              max: 100,
-              grid: { color: "rgba(255,255,255,.06)" },
-              ticks: {
-                color: "#8394aa",
-                callback: value => value + "%"
-              }
-            }
-          }
-        }
-      });
-
-      $("historySummary").textContent =
-        `${history.length} saved snapshot(s) loaded. Metrics are percentages calculated from verified transaction outcomes.`;
     }
 
-    async function loadTestMetrics() {
-      try {
+    if (!Array.isArray(history) || history.length === 0) {
+        $("historySummary").textContent =
+            "No snapshots are available yet. Save a verified transaction outcome to create the first snapshot.";
+
+        return;
+    }
+
+    // API returns newest-first. Display chronologically.
+    const chartHistory = history.slice().reverse();
+
+    const labels = chartHistory.map((item) => {
+        if (item.created_at) {
+            const date = new Date(
+                item.created_at.replace(" ", "T") + "Z"
+            );
+
+            if (!Number.isNaN(date.getTime())) {
+                return date.toLocaleString();
+            }
+        }
+
+        return "Snapshot " + item.id;
+    });
+
+    const ctx = canvas.getContext("2d");
+
+    const accuracyGradient = ctx.createLinearGradient(0, 0, 0, 265);
+
+    accuracyGradient.addColorStop(
+        0,
+        "rgba(54, 217, 255, 0.22)"
+    );
+
+    accuracyGradient.addColorStop(
+        1,
+        "rgba(54, 217, 255, 0.00)"
+    );
+
+    // Neon glow plugin.
+    const neonGlowPlugin = {
+        id: "neonGlow",
+
+        beforeDatasetDraw(chart, args) {
+            const dataset = chart.data.datasets[args.index];
+
+            chart.ctx.save();
+            chart.ctx.shadowColor = dataset.borderColor;
+            chart.ctx.shadowBlur = 14;
+            chart.ctx.shadowOffsetX = 0;
+            chart.ctx.shadowOffsetY = 0;
+        },
+
+        afterDatasetDraw(chart) {
+            chart.ctx.restore();
+        }
+    };
+
+    performanceChartInstance = new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: labels,
+
+            datasets: [
+                {
+                    label: "Accuracy",
+                    data: chartHistory.map(item => item.accuracy),
+
+                    borderColor: "#36d9ff",
+                    backgroundColor: accuracyGradient,
+
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+
+                    borderCapStyle: "round",
+                    borderJoinStyle: "round",
+
+                    pointBackgroundColor: "#36d9ff",
+                    pointBorderColor: "#ffffff",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: "#ffffff",
+                    pointHoverBorderColor: "#36d9ff",
+                    pointHoverBorderWidth: 3
+                },
+
+                {
+                    label: "Precision",
+                    data: chartHistory.map(item => item.precision),
+
+                    borderColor: "#b69cff",
+                    backgroundColor: "rgba(182,156,255,0.08)",
+
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+
+                    borderCapStyle: "round",
+                    borderJoinStyle: "round",
+
+                    pointBackgroundColor: "#b69cff",
+                    pointBorderColor: "#ffffff",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: "#ffffff",
+                    pointHoverBorderColor: "#b69cff",
+                    pointHoverBorderWidth: 3
+                },
+
+                {
+                    label: "Recall",
+                    data: chartHistory.map(item => item.recall),
+
+                    borderColor: "#48d6a0",
+                    backgroundColor: "rgba(72,214,160,0.08)",
+
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+
+                    borderCapStyle: "round",
+                    borderJoinStyle: "round",
+
+                    pointBackgroundColor: "#48d6a0",
+                    pointBorderColor: "#ffffff",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: "#ffffff",
+                    pointHoverBorderColor: "#48d6a0",
+                    pointHoverBorderWidth: 3
+                },
+
+                {
+                    label: "F1-score",
+                    data: chartHistory.map(item => item.f1_score),
+
+                    borderColor: "#ffb547",
+                    backgroundColor: "rgba(255,181,71,0.08)",
+
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+
+                    borderCapStyle: "round",
+                    borderJoinStyle: "round",
+
+                    pointBackgroundColor: "#ffb547",
+                    pointBorderColor: "#ffffff",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: "#ffffff",
+                    pointHoverBorderColor: "#ffb547",
+                    pointHoverBorderWidth: 3
+                }
+            ]
+        },
+
+        plugins: [neonGlowPlugin],
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            animation: {
+                duration: 1200,
+                easing: "easeOutQuart"
+            },
+
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+
+            plugins: {
+                legend: {
+                    position: "top",
+
+                    labels: {
+                        color: "#a7b7c9",
+                        usePointStyle: true,
+                        pointStyle: "circle",
+                        boxWidth: 9,
+                        boxHeight: 9,
+                        padding: 18,
+
+                        font: {
+                            size: 12,
+                            weight: "500"
+                        }
+                    }
+                },
+
+                tooltip: {
+                    enabled: true,
+
+                    backgroundColor: "rgba(5,10,18,0.96)",
+                    titleColor: "#36d9ff",
+                    bodyColor: "#e7f0fa",
+
+                    borderColor: "rgba(54,217,255,0.55)",
+                    borderWidth: 1,
+
+                    padding: 13,
+                    cornerRadius: 9,
+                    displayColors: true,
+
+                    callbacks: {
+                        label(context) {
+                            const value = context.parsed.y;
+
+                            return context.dataset.label + ": " +
+                                (
+                                    value === null || value === undefined
+                                    ? "N/A"
+                                    : Number(value).toFixed(2) + "%"
+                                );
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                x: {
+                    grid: {
+                        color: "rgba(255,255,255,0.045)",
+                        drawBorder: false
+                    },
+
+                    ticks: {
+                        color: "#8394aa",
+                        maxTicksLimit: 6,
+                        maxRotation: 30,
+                        minRotation: 0,
+
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+
+                y: {
+                    min: 0,
+                    max: 100,
+
+                    grid: {
+                        color: "rgba(54,217,255,0.09)",
+                        drawBorder: false
+                    },
+
+                    ticks: {
+                        stepSize: 10,
+                        color: "#8394aa",
+
+                        callback(value) {
+                            return value + "%";
+                        },
+
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    $("historySummary").textContent =
+        `${chartHistory.length} saved snapshot(s) loaded. Metrics are percentages calculated from verified transaction outcomes.`;
+}
+
+
+// ==========================================
+// TEST DATASET MODEL METRICS
+// ==========================================
+
+async function loadTestMetrics() {
+    try {
         const data = await fetchJson("/api/model_metrics");
 
-        // The endpoint may return dataset-evaluation metrics, or only metadata.
         if (data.accuracy !== undefined && data.accuracy !== null) {
-          $("testAccuracy").textContent = formatPercent(data.accuracy);
+            $("testAccuracy").textContent =
+                formatPercent(data.accuracy);
         } else {
-          $("testAccuracy").textContent = "N/A";
+            $("testAccuracy").textContent = "N/A";
         }
 
         $("primaryAlgorithm").textContent =
-          data.algorithm || data.model || "Configured model";
-      } catch (error) {
-        console.warn("Test model metrics unavailable:", error.message);
-        $("testAccuracy").textContent = "N/A";
-      }
-    }
+            data.algorithm || data.model || "Configured model";
 
-    async function loadFraudChart() {
-      try {
+    } catch (error) {
+        console.warn(
+            "Test model metrics unavailable:",
+            error.message
+        );
+
+        $("testAccuracy").textContent = "N/A";
+    }
+}
+
+
+// ==========================================
+// FRAUD ANALYTICS CHART
+// ==========================================
+
+async function loadFraudChart() {
+    try {
         const data = await fetchJson("/analytics");
+
         const canvas = $("fraudTrendChart");
 
-        // The dashboard API returns labels and scores.
-        if (!Array.isArray(data.labels) || !Array.isArray(data.scores)) {
-          throw new Error("Unexpected analytics response format.");
+        if (
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.scores)
+        ) {
+            throw new Error(
+                "Unexpected analytics response format."
+            );
         }
 
-        if (fraudChartInstance) fraudChartInstance.destroy();
+        if (fraudChartInstance) {
+            fraudChartInstance.destroy();
+        }
 
         const ctx = canvas.getContext("2d");
+
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, "rgba(54,217,255,.22)");
-        gradient.addColorStop(1, "rgba(54,217,255,0)");
+
+        gradient.addColorStop(
+            0,
+            "rgba(54,217,255,.22)"
+        );
+
+        gradient.addColorStop(
+            1,
+            "rgba(54,217,255,0)"
+        );
 
         fraudChartInstance = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: data.labels,
-            datasets: [{
-              label: "Fraud Risk Score (%)",
-              data: data.scores,
-              borderColor: "#36d9ff",
-              borderWidth: 2,
-              backgroundColor: gradient,
-              fill: true,
-              tension: .32,
-              pointBackgroundColor: "#36d9ff",
-              pointBorderColor: "#050a12",
-              pointBorderWidth: 2,
-              pointRadius: 3,
-              pointHoverRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 250 },
-            plugins: {
-              legend: {
-                labels: { color: "#a7b7c9" }
-              }
+            type: "line",
+
+            data: {
+                labels: data.labels,
+
+                datasets: [{
+                    label: "Fraud Risk Score (%)",
+                    data: data.scores,
+
+                    borderColor: "#36d9ff",
+                    borderWidth: 2,
+
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: .32,
+
+                    pointBackgroundColor: "#36d9ff",
+                    pointBorderColor: "#050a12",
+                    pointBorderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                }]
             },
-            scales: {
-              x: {
-                grid: { color: "rgba(255,255,255,.045)" },
-                ticks: { color: "#8394aa" }
-              },
-              y: {
-                min: 0,
-                max: 100,
-                grid: { color: "rgba(255,255,255,.06)" },
-                ticks: {
-                  color: "#8394aa",
-                  callback: value => value + "%"
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 250
+                },
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#a7b7c9"
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        grid: {
+                            color: "rgba(255,255,255,.045)"
+                        },
+
+                        ticks: {
+                            color: "#8394aa"
+                        }
+                    },
+
+                    y: {
+                        min: 0,
+                        max: 100,
+
+                        grid: {
+                            color: "rgba(255,255,255,.06)"
+                        },
+
+                        ticks: {
+                            color: "#8394aa",
+
+                            callback: value => value + "%"
+                        }
+                    }
                 }
-              }
             }
-          }
         });
-      } catch (error) {
-        console.error("Failed to load fraud analytics:", error.message);
-      }
+
+    } catch (error) {
+        console.error(
+            "Failed to load fraud analytics:",
+            error.message
+        );
     }
+}
 
-    async function loadPerformanceMetrics() {
-      const button = $("refreshMonitoring");
-      button.disabled = true;
-      setStatus("monitorStatus", "Refreshing verified performance metrics…");
+// ==========================================
+// VERIFIED PERFORMANCE METRICS
+// ==========================================
 
-      try {
+async function loadPerformanceMetrics() {
+    const button = $("refreshMonitoring");
+
+    button.disabled = true;
+
+    setStatus(
+        "monitorStatus",
+        "Refreshing verified performance metrics…"
+    );
+
+    try {
         const data = await fetchJson("/api/model-performance");
 
-        const metrics = data.metrics || null;
-        const sampleCount = Number(data.sample_count || 0);
+        const metrics = data.metrics || {};
+        const sampleCount = Number(metrics.sample_count || 0);
 
-        $("verifiedCount").textContent = formatNumber(sampleCount);
-        $("overviewVerifiedCount").textContent = formatNumber(sampleCount);
+        $("verifiedCount").textContent =
+            formatNumber(sampleCount);
 
-        if (data.status === "awaiting_labels" || !metrics) {
-          updateMetricCard("perfAccuracy", null);
-          updateMetricCard("perfPrecision", null);
-          updateMetricCard("perfRecall", null);
-          updateMetricCard("perfF1", null);
-          setMatrixValues(null);
+        $("overviewVerifiedCount").textContent =
+            formatNumber(sampleCount);
 
-          $("accuracyChange").textContent = "N/A";
-          $("recallChange").textContent = "N/A";
-          $("latestSnapshot").textContent = "Not available";
-          $("performanceNote").textContent =
-            "No verified labels are available yet. Review transactions and save their confirmed outcomes below.";
+        if (sampleCount === 0) {
+            updateMetricCard("perfAccuracy", null);
+            updateMetricCard("perfPrecision", null);
+            updateMetricCard("perfRecall", null);
+            updateMetricCard("perfF1", null);
 
-          setStatus(
-            "monitorStatus",
-            data.message || "Awaiting verified transaction outcomes. Metrics will appear after reviewed labels are recorded.",
-            "warning"
-          );
-          return;
+            setMatrixValues(null);
+
+            $("accuracyChange").textContent = "N/A";
+            $("recallChange").textContent = "N/A";
+            $("latestSnapshot").textContent = "Not available";
+
+            $("performanceNote").textContent =
+                metrics.message ||
+                "No verified labels are available yet. Review transactions and save their confirmed outcomes below.";
+
+            setStatus(
+                "monitorStatus",
+                metrics.message ||
+                "Awaiting verified transaction outcomes. Metrics will appear after reviewed labels are recorded.",
+                "warning"
+            );
+
+            return;
         }
 
         updateMetricCard("perfAccuracy", metrics.accuracy);
@@ -1247,169 +1754,293 @@
         updateMetricCard("perfRecall", metrics.recall);
         updateMetricCard("perfF1", metrics.f1_score);
 
-        setMatrixValues(data.confusion_matrix);
+        setMatrixValues(metrics.confusion_matrix);
 
-        const latest = data.latest_snapshot;
-        $("latestSnapshot").textContent = latest
-          ? (latest.created_at || ("Snapshot #" + latest.id))
-          : "Not available";
+        $("latestSnapshot").textContent =
+            "See snapshot history below";
 
-        const drift = data.performance_drift;
-        $("accuracyChange").textContent =
-          drift ? formatChange(drift.accuracy) : "N/A";
-        $("recallChange").textContent =
-          drift ? formatChange(drift.recall) : "N/A";
+        $("accuracyChange").textContent = "N/A";
+        $("recallChange").textContent = "N/A";
 
         $("performanceNote").textContent =
-          data.label_note ||
-          "Metrics are calculated from reviewed transactions with verified actual outcomes.";
+            metrics.label_note ||
+            "Metrics are calculated from reviewed transactions with verified actual outcomes.";
 
         setStatus(
-          "monitorStatus",
-          `Performance metrics loaded successfully. ${formatNumber(sampleCount)} verified transaction(s) included.`,
-          "success"
+            "monitorStatus",
+            `Performance metrics loaded successfully. ${formatNumber(sampleCount)} verified transaction(s) included.`,
+            "success"
         );
-      } catch (error) {
+
+    } catch (error) {
         setStatus(
-          "monitorStatus",
-          "Unable to load performance metrics: " + error.message +
-          ". Check that app.py is running, you are logged in, and the API route exists.",
-          "error"
+            "monitorStatus",
+            "Unable to load performance metrics: " +
+            error.message +
+            ". Check that app.py is running, you are logged in, and the API route exists.",
+            "error"
         );
-      } finally {
+
+    } finally {
         button.disabled = false;
-      }
     }
+}
 
-    async function loadPerformanceHistory() {
-      const button = $("refreshHistory");
-      button.disabled = true;
 
-      try {
-        const data = await fetchJson("/api/model-performance/history?limit=30");
-        const history = Array.isArray(data.history) ? data.history : [];
+// ==========================================
+// PERFORMANCE SNAPSHOT HISTORY
+// ==========================================
+
+async function loadPerformanceHistory() {
+    const button = $("refreshHistory");
+
+    button.disabled = true;
+
+    try {
+        const data = await fetchJson(
+            "/api/model-performance/history?limit=30"
+        );
+
+        const history = Array.isArray(data.history)
+            ? data.history
+            : [];
 
         $("historyCount").textContent =
-          `${history.length} snapshot${history.length === 1 ? "" : "s"}`;
+            `${history.length} snapshot${history.length === 1 ? "" : "s"}`;
 
         const tbody = $("historyTableBody");
 
         if (history.length === 0) {
-          tbody.innerHTML = "";
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = 7;
-          cell.className = "empty-state";
-          cell.textContent =
-            "No saved snapshots yet. Submit a verified transaction outcome to create one.";
-          row.appendChild(cell);
-          tbody.appendChild(row);
-        } else {
-          tbody.innerHTML = "";
+            tbody.innerHTML = "";
 
-          history.slice().reverse().forEach((item) => {
             const row = document.createElement("tr");
+            const cell = document.createElement("td");
 
-            const values = [
-              item.id,
-              item.created_at || "N/A",
-              formatNumber(item.sample_count),
-              formatPercent(item.accuracy),
-              formatPercent(item.precision),
-              formatPercent(item.recall),
-              formatPercent(item.f1_score)
-            ];
+            cell.colSpan = 7;
+            cell.className = "empty-state";
 
-            values.forEach((value) => {
-              const cell = document.createElement("td");
-              cell.textContent = String(value);
-              row.appendChild(cell);
-            });
+            cell.textContent =
+                "No saved snapshots yet. Submit a verified transaction outcome to create one.";
 
+            row.appendChild(cell);
             tbody.appendChild(row);
-          });
+
+        } else {
+            tbody.innerHTML = "";
+
+            history.slice().reverse().forEach((item) => {
+                const row = document.createElement("tr");
+
+                const values = [
+                    item.id,
+                    item.created_at || "N/A",
+                    formatNumber(item.sample_count),
+                    formatPercent(item.accuracy),
+                    formatPercent(item.precision),
+                    formatPercent(item.recall),
+                    formatPercent(item.f1_score)
+                ];
+
+                values.forEach((value) => {
+                    const cell = document.createElement("td");
+
+                    cell.textContent = String(value);
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
         }
 
         renderPerformanceChart(history);
-      } catch (error) {
+
+    } catch (error) {
         $("historyTableBody").innerHTML = "";
+
         const row = document.createElement("tr");
         const cell = document.createElement("td");
+
         cell.colSpan = 7;
         cell.className = "empty-state";
-        cell.textContent = "Could not load history: " + error.message;
+
+        cell.textContent =
+            "Could not load history: " + error.message;
+
         row.appendChild(cell);
+
         $("historyTableBody").appendChild(row);
 
         $("historyCount").textContent = "Unavailable";
-        console.error("Performance history error:", error.message);
-      } finally {
-        button.disabled = false;
-      }
-    }
 
-    async function submitVerifiedLabel(event) {
-      event.preventDefault();
+        $("historySummary").textContent =
+            "Performance history could not be loaded.";
 
-      const button = $("submitLabel");
-      const transactionId = $("transactionId").value.trim();
-      const actualClass = $("actualClass").value;
-
-      if (!transactionId || !Number.isInteger(Number(transactionId)) ||
-          Number(transactionId) < 1) {
-        setStatus("labelStatus", "Enter a valid positive transaction ID.", "warning");
-        $("labelStatus").style.display = "block";
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Saving outcome…";
-      $("labelStatus").style.display = "block";
-      setStatus("labelStatus", "Saving the verified outcome…");
-
-      try {
-        const result = await fetchJson("/api/model-performance/label", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            transaction_id: Number(transactionId),
-            actual_class: Number(actualClass)
-          })
-        });
-
-        setStatus(
-          "labelStatus",
-          result.message || "Verified outcome saved.",
-          "success"
+        console.error(
+            "Performance history error:",
+            error.message
         );
 
-        await Promise.all([
-          loadPerformanceMetrics(),
-          loadPerformanceHistory()
-        ]);
-
-        $("transactionId").value = "";
-      } catch (error) {
-        setStatus("labelStatus", "Could not save outcome: " + error.message, "error");
-      } finally {
+    } finally {
         button.disabled = false;
-        button.textContent = "Save Verified Outcome";
-      }
+    }
+}
+
+
+// ==========================================
+// VERIFIED LABEL SUBMISSION
+// ==========================================
+
+async function submitVerifiedLabel(event) {
+    event.preventDefault();
+
+    const button = $("submitLabel");
+
+    const transactionId =
+        $("transactionId").value.trim();
+
+    const actualClass =
+        $("actualClass").value;
+
+    // Validate transaction ID.
+    if (
+        !transactionId ||
+        !Number.isInteger(Number(transactionId)) ||
+        Number(transactionId) < 1
+    ) {
+        $("labelStatus").style.display = "block";
+
+        setStatus(
+            "labelStatus",
+            "Enter a valid positive transaction ID.",
+            "warning"
+        );
+
+        return;
     }
 
-    $("refreshMonitoring").addEventListener("click", loadPerformanceMetrics);
-    $("refreshHistory").addEventListener("click", loadPerformanceHistory);
-    $("labelTransactionForm").addEventListener("submit", submitVerifiedLabel);
+    button.disabled = true;
+    button.textContent = "Saving outcome…";
 
-    // Initial dashboard load.
-    loadTestMetrics();
-    loadFraudChart();
-    loadPerformanceMetrics();
-    loadPerformanceHistory();
+    $("labelStatus").style.display = "block";
 
-    // Refresh current performance and fraud analytics periodically.
-    setInterval(loadPerformanceMetrics, 30000);
-    setInterval(loadFraudChart, 15000);
-  </script>
+    setStatus(
+        "labelStatus",
+        "Saving the verified outcome…"
+    );
+
+    try {
+        // STEP 1: Save verified actual outcome.
+        const result = await fetchJson(
+            "/api/model-performance/label",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    transaction_id: Number(transactionId),
+                    actual_class: Number(actualClass)
+                })
+            }
+        );
+
+        // STEP 2: Create performance snapshot.
+        // Snapshot failure must not undo a saved label.
+        let snapshotWarning = "";
+
+        try {
+            await fetchJson(
+                "/api/model-performance/snapshot",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({})
+                }
+            );
+
+        } catch (snapshotError) {
+            snapshotWarning =
+                " The verified outcome was saved, but its history snapshot could not be created: " +
+                snapshotError.message;
+        }
+
+        // STEP 3: Clear transaction ID.
+        $("transactionId").value = "";
+
+        // STEP 4: Refresh metrics and history.
+        await Promise.all([
+            loadPerformanceMetrics(),
+            loadPerformanceHistory()
+        ]);
+
+        // STEP 5: Show final result.
+        setStatus(
+            "labelStatus",
+            (result.message ||
+                "Verified outcome saved successfully.") +
+            snapshotWarning,
+            snapshotWarning ? "warning" : "success"
+        );
+
+    } catch (error) {
+        setStatus(
+            "labelStatus",
+            "Could not save outcome: " + error.message,
+            "error"
+        );
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "Save Verified Outcome";
+    }
+}
+
+
+// ==========================================
+// EVENT LISTENERS
+// ==========================================
+
+$("refreshMonitoring").addEventListener(
+    "click",
+    loadPerformanceMetrics
+);
+
+$("refreshHistory").addEventListener(
+    "click",
+    loadPerformanceHistory
+);
+
+$("labelTransactionForm").addEventListener(
+    "submit",
+    submitVerifiedLabel
+);
+
+
+// ==========================================
+// INITIAL DASHBOARD LOAD
+// ==========================================
+
+loadTestMetrics();
+loadFraudChart();
+loadPerformanceMetrics();
+loadPerformanceHistory();
+
+
+// ==========================================
+// AUTOMATIC REFRESH
+// ==========================================
+
+setInterval(loadPerformanceMetrics, 30000);
+setInterval(loadFraudChart, 15000);
+
+</script>
+
 </body>
 </html>
